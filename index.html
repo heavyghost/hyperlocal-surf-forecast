@@ -368,6 +368,12 @@ function rateSurf(sh, sp, sd, ws, wd, config) {
     score += 8; // cross-shore
   }
 
+  // Onshore wind > 10kn = automatic POOR regardless of score
+  if (onsh && kts > 10) {
+    if (!reasons.includes('onshore wind')) reasons.push('onshore wind');
+    return { label: 'POOR', color: '#ff1744', textColor: '#fff', reasons };
+  }
+
   if      (score >= 85) return { label: 'FIRING', color: '#00e5ff', textColor: '#000', reasons };
   else if (score >= 65) return { label: 'GOOD',   color: '#39ff14', textColor: '#000', reasons };
   else if (score >= 40) return { label: 'OK',     color: '#ffd600', textColor: '#000', reasons };
