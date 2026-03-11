@@ -415,11 +415,11 @@ async function fetchForecast(cfg) {
     `&daily=sunrise,sunset` +
     `&timezone=auto&forecast_days=7`;
 
-  // Tides need the meteofrance_ocean model explicitly — fetched separately
+  // Tides need the meteofrance_currents model explicitly — fetched separately
   // so any failure won't crash the main forecast
   const tidesUrl = `${base_marine}?latitude=${cfg.lat}&longitude=${cfg.lon}` +
-    `&hourly=sea_level_height_above_mean` +
-    `&models=meteofrance_ocean` +
+    `&hourly=sea_level_height_msl` +
+    `&models=meteofrance_currents` +
     `&timezone=auto&forecast_days=7`;
 
   // Main data — must succeed
@@ -432,9 +432,9 @@ async function fetchForecast(cfg) {
   let tideMap = {};
   try {
     const td = await fetch(tidesUrl).then(r => r.json());
-    if (td.hourly?.time && td.hourly?.sea_level_height_above_mean) {
+    if (td.hourly?.time && td.hourly?.sea_level_height_msl) {
       td.hourly.time.forEach((t, i) => {
-        const val = td.hourly.sea_level_height_above_mean[i];
+        const val = td.hourly.sea_level_height_msl[i];
         if (val != null) tideMap[t] = val;
       });
       console.log(`Loaded ${Object.keys(tideMap).length} tide entries`);
