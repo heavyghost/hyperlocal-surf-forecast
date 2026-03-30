@@ -174,6 +174,7 @@
   .dir-arrow { font-size: 14px; }
   .muted-cell { color: var(--muted); }
   .reason-cell { color: var(--muted); font-size: 10px; font-style: italic; }
+  .forecast-table td:last-child { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .reason-offshore { color: #39ff14; font-size: 10px; font-style: italic; }
   .reason-onshore  { color: #ff1744; font-size: 10px; font-style: italic; }
 
@@ -260,37 +261,6 @@
 
   /* ── TABLE SCROLL WRAPPER ── */
   .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
-
-  /* ── BUOY PANEL ── */
-  .buoy-panel {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin: 12px 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-  }
-  .buoy-panel.buoy-error { opacity: 0.5; }
-  .buoy-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.95rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1px;
-    color: var(--muted); white-space: nowrap;
-  }
-  .buoy-title span { color: var(--firing); }
-  .buoy-sep { width: 1px; height: 30px; background: var(--border); }
-  .buoy-stat { display: flex; flex-direction: column; gap: 2px; }
-  .buoy-stat .bs-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
-  .buoy-stat .bs-val { font-size: 13px; font-weight: 600; color: #fff; }
-  .buoy-stat .bs-val.hs { font-size: 1.3rem; color: var(--firing); }
-  .buoy-age { font-size: 10px; color: var(--muted); margin-left: auto; white-space: nowrap; }
-  .buoy-cors-note {
-    font-size: 10px; color: var(--muted); font-style: italic;
-    width: 100%; margin-top: 4px;
-  }
 
   /* ── FOOTER ── */
   footer {
@@ -467,32 +437,6 @@
     </div>
   </div>
 
-  <!-- ── LIVE BUOY PANEL ── -->
-  <div class="buoy-panel" id="buoy-panel">
-    <div class="buoy-title">🔴 <span>Albany Waverider</span> &nbsp;·&nbsp; WMO 56011 &nbsp;·&nbsp; ~50m depth</div>
-    <div class="buoy-sep"></div>
-    <div class="buoy-stat">
-      <span class="bs-label">Sig. Height</span>
-      <span class="bs-val hs" id="buoy-hs">—</span>
-    </div>
-    <div class="buoy-sep"></div>
-    <div class="buoy-stat">
-      <span class="bs-label">Peak Period</span>
-      <span class="bs-val" id="buoy-tp">—</span>
-    </div>
-    <div class="buoy-sep"></div>
-    <div class="buoy-stat">
-      <span class="bs-label">Direction</span>
-      <span class="bs-val" id="buoy-dir">—</span>
-    </div>
-    <div class="buoy-sep"></div>
-    <div class="buoy-stat">
-      <span class="bs-label">Sea Temp</span>
-      <span class="bs-val" id="buoy-sst">—</span>
-    </div>
-    <div class="buoy-age" id="buoy-age">Loading…</div>
-  </div>
-
   <div id="app"><div class="loading"><div class="spinner"></div>Fetching forecast data…</div></div>
 
   <footer>Data: <a href="https://open-meteo.com" style="color:var(--accent)">Open-Meteo.com</a> — Free &amp; open source weather API — Marine model: GFS Wave / MeteoFrance MFWAM &nbsp;|&nbsp; Tide data is indicative only — check BOM for navigation &nbsp;|&nbsp; Built with the surf-forecast-dashboard skill</footer>
@@ -532,7 +476,7 @@ function rateSurf(sh, sp, sd, ws, wd, config) {
   if (sh != null && sd != null && inRange(sd, config.swellWindow.from, config.swellWindow.to)) {
     score += 30;
   } else {
-    reasons.push('swell not hitting break');
+    reasons.push('no swell window');
   }
 
   // 2. Swell height in ideal range?
@@ -564,14 +508,14 @@ function rateSurf(sh, sp, sd, ws, wd, config) {
   } else if (offsh) {
     score += kts < 20 ? 15 : 8;
   } else if (onsh) {
-    score += 0; reasons.push('onshore wind');
+    score += 0; reasons.push('onshore');
   } else {
     score += 8; // cross-shore
   }
 
   // Onshore wind > 10kn = automatic POOR regardless of score
   if (onsh && kts > 10) {
-    if (!reasons.includes('onshore wind')) reasons.push('onshore wind');
+    if (!reasons.includes('onshore')) reasons.push('onshore');
     return { label: 'POOR', color: '#ff1744', textColor: '#fff', reasons };
   }
 
@@ -877,60 +821,7 @@ function scrollToDay(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ── Live Buoy — WA DoT Albany Waverider (WMO 56011) ──────────────────────
-// Data via AODN GeoServer WFS — Albany buoy is ~50km offshore in ~50m depth.
-// Updates every 3 hours. Falls back gracefully if CORS blocks the request.
-// Swap BUOY_URL for Sofar Ocean API endpoint once access is arranged.
-
-// Hits our Netlify edge function proxy at /api/buoy
-// The edge function fetches from AODN server-side (no CORS issue)
-// and returns clean normalised JSON.
-const BUOY_WFS_URL = '/api/buoy';
-
-async function fetchBuoyData() {
-  const panel = document.getElementById('buoy-panel');
-  try {
-    const resp = await fetch(BUOY_WFS_URL);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const d = await resp.json();
-    if (d.error) throw new Error(d.reason);
-
-    document.getElementById('buoy-hs').textContent =
-      d.hs  != null ? d.hs.toFixed(2)  + 'm' : '—';
-    document.getElementById('buoy-tp').textContent =
-      d.tp  != null ? d.tp.toFixed(1)  + 's' : '—';
-    document.getElementById('buoy-dir').textContent =
-      d.dp  != null
-        ? `${bearingToArrow(d.dp)} ${bearingToCompass(d.dp)} (${Math.round(d.dp)}°)`
-        : '—';
-    document.getElementById('buoy-sst').textContent =
-      d.sst != null ? d.sst.toFixed(1) + '°C' : '—';
-
-    if (d.time) {
-      const obs = new Date(d.time);
-      const minsAgo = Math.round((Date.now() - obs) / 60000);
-      const ageStr = minsAgo < 60
-        ? `${minsAgo}m ago`
-        : `${Math.floor(minsAgo/60)}h ${minsAgo%60}m ago`;
-      document.getElementById('buoy-age').textContent =
-        `Obs. ${obs.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',hour12:true})} (${ageStr})`;
-    }
-
-    document.querySelector('.buoy-title').innerHTML =
-      '🟢 <span>Albany Waverider</span> &nbsp;·&nbsp; WMO 56011 &nbsp;·&nbsp; ~50m depth';
-
-  } catch (err) {
-    panel.classList.add('buoy-error');
-    document.getElementById('buoy-age').textContent = 'Unavailable';
-    const note = document.createElement('div');
-    note.className = 'buoy-cors-note';
-    note.textContent = `⚠ Live buoy data unavailable (${err.message}). Will resolve once edge function is deployed to Netlify.`;
-    panel.appendChild(note);
-    console.warn('Buoy fetch failed:', err.message);
-  }
-}
-
-
+// ── Settings panel ─────────────────────────────────────────────────────────
 
 const DEFAULT_CONFIG = {
   swellWindow:        { from: 160, to: 260 },
@@ -1052,7 +943,6 @@ function loadSavedSettings() {
 
 (async () => {
   loadSavedSettings();
-  fetchBuoyData(); // fire and forget — panel degrades gracefully on failure
   try {
     const { marine, wx, tideMap } = await fetchForecast(BREAK_CONFIG);
     _cachedMarine  = marine;
