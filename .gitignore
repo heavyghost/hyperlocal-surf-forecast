@@ -1,2 +1,15 @@
-# Local Netlify folder
-.netlify
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+*.swp
+*.swo
+
+# Netlify
+.netlify/
+
+# Node (if any tooling is added later)
+node_modules/

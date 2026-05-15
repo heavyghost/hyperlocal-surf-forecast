@@ -300,6 +300,130 @@
     text-transform: uppercase;
   }
 
+  /* ── SYNOPTIC CHARTS SECTION ── */
+  .syn-section { margin: 24px 0; }
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: #fff; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label .sl-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); font-weight: 400; letter-spacing: 1px; }
+
+  .chart-tabs {
+    display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .chart-tab {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 5px 10px; border-radius: 5px;
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--muted); cursor: pointer;
+    transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .chart-tab:hover { border-color: var(--accent); color: var(--text); }
+  .chart-tab.active { background: rgba(0,229,255,0.1); border-color: var(--firing); color: var(--firing); }
+
+  .syn-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .syn-card .syn-label-bar {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--muted); padding: 8px 12px;
+    background: var(--bg3); border-bottom: 1px solid var(--border);
+  }
+  .syn-card img { width: 100%; display: block; opacity: 0.95; }
+  .syn-fallback {
+    padding: 60px 20px; text-align: center; color: var(--muted);
+    font-size: 12px; display: none;
+  }
+  .syn-fallback a { color: var(--accent); text-decoration: none; }
+
+  .analysis-box {
+    background: var(--bg2); border: 1px solid rgba(0,229,255,0.12);
+    border-radius: 8px; padding: 12px 14px; margin-top: 10px;
+  }
+  .analysis-box .a-label {
+    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--firing); margin-bottom: 6px;
+  }
+  .analysis-box p { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 4px; }
+  .analysis-box p:last-child { margin-bottom: 0; }
+  .hl { color: var(--firing); font-weight: 600; }
+  .gd { color: var(--good); font-weight: 600; }
+  .wn { color: var(--ok); font-weight: 600; }
+  .bd { color: var(--poor); font-weight: 600; }
+
+  /* ── READING GUIDE ── */
+  .reading-guide {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;
+  }
+  .reading-guide h3 {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--ok); margin-bottom: 10px;
+  }
+  .rg-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .rg-item {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 11px; color: var(--muted); line-height: 1.4;
+  }
+  .rg-item .rg-icon { color: var(--firing); flex-shrink: 0; width: 16px; text-align: center; margin-top: 1px; }
+  .rg-item strong { color: var(--text); }
+
+  /* ── SCORING EXPLAINER ── */
+  .explainer-section {
+    margin-top: 32px; padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .explainer-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+  }
+  .explainer-card h3 {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: #b388ff; margin-bottom: 8px;
+  }
+  .explainer-card p {
+    font-size: 12px; color: var(--muted); line-height: 1.65;
+  }
+  .score-breakdown {
+    margin-top: 10px;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .score-breakdown th, .score-breakdown td {
+    text-align: left; padding: 6px 10px; font-size: 11px;
+    border-bottom: 1px solid rgba(26,46,66,0.5);
+  }
+  .score-breakdown th {
+    color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-breakdown td { color: var(--text); }
+  .score-breakdown .pts { color: var(--firing); font-weight: 700; }
+  .formula-box {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--firing); background: var(--bg3);
+    padding: 8px 12px; border-radius: 4px; margin-top: 8px;
+    display: inline-block;
+  }
+  .rating-example {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    margin-right: 16px; margin-top: 4px;
+  }
+  .rating-example .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block;
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 600px) {
     .header-left h1 { font-size: 2rem; }
@@ -308,6 +432,7 @@
     .forecast-table td:nth-child(9),
     .forecast-table th:nth-child(10),
     .forecast-table td:nth-child(10) { display: none; }
+    .rg-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -467,6 +592,32 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════
+       SYNOPTIC PRESSURE CHARTS
+       ═══════════════════════════════════════════ -->
+  <div class="syn-section">
+    <div class="section-label">
+      Synoptic Pressure Charts
+      <span class="sl-sub">· WeatherZone · auto-updating daily</span>
+    </div>
+
+    <!-- Reading guide -->
+    <div class="reading-guide">
+      <h3>Reading Synoptic Charts for Surf</h3>
+      <div class="rg-grid">
+        <div class="rg-item"><div class="rg-icon">L</div><div><strong>Low Pressure</strong> — Clockwise wind (Sth Hem). Generates swell. Deeper = bigger.</div></div>
+        <div class="rg-item"><div class="rg-icon">H</div><div><strong>High Pressure</strong> — Anticlockwise. Light local winds = clean conditions.</div></div>
+        <div class="rg-item"><div class="rg-icon">=</div><div><strong>Isobar Spacing</strong> — Close lines = steep gradient = strong winds. #1 thing to read.</div></div>
+        <div class="rg-item"><div class="rg-icon">▲</div><div><strong>Cold Front</strong> — Wind shift NW→SW, rain, chop. Messy locally.</div></div>
+        <div class="rg-item"><div class="rg-icon">→</div><div><strong>Fetch</strong> — Longer sustained wind over ocean = longer-period, more powerful swell.</div></div>
+        <div class="rg-item"><div class="rg-icon">★</div><div><strong>Golden Rule</strong> — Swell from a departed low + offshore from an arriving high = clean waves.</div></div>
+      </div>
+    </div>
+
+    <div class="chart-tabs" id="chart-tabs"></div>
+    <div id="chart-container"></div>
+  </div>
+
   <!-- ── LIVE BUOY PANEL ── -->
   <div class="buoy-panel" id="buoy-panel">
     <div class="buoy-title">🔴 <span>Albany Waverider</span> &nbsp;·&nbsp; WMO 56011 &nbsp;·&nbsp; ~50m depth</div>
@@ -495,7 +646,96 @@
 
   <div id="app"><div class="loading"><div class="spinner"></div>Fetching forecast data…</div></div>
 
-  <footer>Data: <a href="https://open-meteo.com" style="color:var(--accent)">Open-Meteo.com</a> — Free &amp; open source weather API — Marine model: GFS Wave / MeteoFrance MFWAM &nbsp;|&nbsp; Tide data is indicative only — check BOM for navigation &nbsp;|&nbsp; Built with the surf-forecast-dashboard skill</footer>
+  <!-- ═══════════════════════════════════════════
+       SCORING EXPLAINER
+       ═══════════════════════════════════════════ -->
+  <div class="explainer-section">
+    <div class="section-label">How the Scoring Works <span class="sl-sub">· understanding your ratings</span></div>
+
+    <div class="explainer-card">
+      <h3>Point System (100 points max)</h3>
+      <p>Each 3-hour time slot gets scored across four categories. The total determines the rating label. Points are additive — a slot needs good scores in multiple categories to rate highly.</p>
+      <table class="score-breakdown">
+        <thead><tr><th>Category</th><th>Condition</th><th>Points</th></tr></thead>
+        <tbody>
+          <tr><td>Swell Direction</td><td>Swell coming from within your exposure window</td><td class="pts">+30</td></tr>
+          <tr><td></td><td>Swell outside window (shadowed / wrong angle)</td><td>+0</td></tr>
+          <tr><td>Swell Height</td><td>Within your ideal height range</td><td class="pts">+25</td></tr>
+          <tr><td></td><td>Below minimum (too small)</td><td>+0</td></tr>
+          <tr><td></td><td>Above maximum (maxing out)</td><td>+0</td></tr>
+          <tr><td>Swell Period</td><td>At or above your minimum period threshold</td><td class="pts">+25</td></tr>
+          <tr><td></td><td>Below threshold (short-period wind chop)</td><td>+0</td></tr>
+          <tr><td>Wind Quality</td><td>Light wind (&lt; threshold) + offshore direction</td><td class="pts">+20</td></tr>
+          <tr><td></td><td>Light wind + glassy (not clearly offshore or onshore)</td><td class="pts">+15</td></tr>
+          <tr><td></td><td>Light wind + light onshore</td><td class="pts">+8</td></tr>
+          <tr><td></td><td>Moderate offshore (&lt; 20kn)</td><td class="pts">+15</td></tr>
+          <tr><td></td><td>Strong offshore (20kn+)</td><td class="pts">+8</td></tr>
+          <tr><td></td><td>Cross-shore</td><td class="pts">+8</td></tr>
+          <tr><td></td><td>Onshore wind</td><td>+0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="explainer-card">
+      <h3>Rating Thresholds</h3>
+      <p>The total score maps to a rating label. Higher score = better conditions across all categories.</p>
+      <div style="margin-top: 8px;">
+        <div class="rating-example"><span class="dot" style="background:#00e5ff"></span> <strong style="color:#00e5ff">FIRING</strong> — 85+ points. Everything aligned: right swell direction/size/period + light offshore.</div><br>
+        <div class="rating-example"><span class="dot" style="background:#39ff14"></span> <strong style="color:#39ff14">GOOD</strong> — 65–84 points. Most factors good, maybe slightly outside ideal on one.</div><br>
+        <div class="rating-example"><span class="dot" style="background:#ffd600"></span> <strong style="color:#ffd600">OK</strong> — 40–64 points. Surfable but compromised — short period, marginal size, or cross-shore wind.</div><br>
+        <div class="rating-example"><span class="dot" style="background:#ff1744"></span> <strong style="color:#ff1744">POOR</strong> — Below 40, or onshore wind exceeding 10 knots (automatic override).</div>
+      </div>
+    </div>
+
+    <div class="explainer-card">
+      <h3>The Onshore Override Rule</h3>
+      <p>Regardless of score, if the wind is <strong style="color:var(--text)">onshore and exceeds 10 knots</strong>, the rating is forced to <strong style="color:#ff1744">POOR</strong>. Onshore wind blows into the face of the wave, creating choppy, disorganised conditions that ruin wave quality no matter how good the swell is. This is the single most important factor for wave quality at Midds.</p>
+    </div>
+
+    <div class="explainer-card">
+      <h3>What the "Notes" Column Tells You</h3>
+      <p>The notes column in the forecast table shows the <em>reasons</em> behind each rating — specifically what's holding it back or making it good:</p>
+      <div style="margin-top: 6px; font-size: 12px; line-height: 2;">
+        <span class="reason-offshore">✓ offshore</span> — Everything checks out, wind is offshore or light. Go surf.<br>
+        <span class="reason-cell">swell not hitting break</span> — Swell direction is outside your exposure window. The swell exists but your break is sheltered from it.<br>
+        <span class="reason-cell">too small</span> — Swell height below your configured minimum.<br>
+        <span class="reason-cell">maxing out</span> — Swell height above your configured maximum. Break may be closing out.<br>
+        <span class="reason-cell">short period</span> — Wind swell or short-interval chop, not clean groundswell.<br>
+        <span class="reason-onshore">onshore wind</span> — Wind blowing from ocean onto land, messing up the wave face.<br>
+        <span class="reason-cell">light onshore</span> — Onshore but below the threshold — might still be okay.
+      </div>
+    </div>
+
+    <div class="explainer-card">
+      <h3>Connecting Pressure Charts to Ratings</h3>
+      <p>The synoptic charts above show you <em>why</em> the ratings look the way they do, and what's coming:</p>
+      <div style="margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.65;">
+        A day full of <strong style="color:#ff1744">POOR</strong> ratings? Look at the chart — there's probably a front sitting directly over Albany with onshore winds. But check the chart for the <em>next</em> day: if you see the low moving east and a high building behind it, tomorrow's table will likely show <strong style="color:#39ff14">GOOD</strong> or <strong style="color:#00e5ff">FIRING</strong> for the early morning hours.<br><br>
+        <strong style="color:var(--text)">The pattern to look for:</strong> departed low (swell source) + arriving high (light/offshore wind) = green and cyan in the ratings table. That's the magic combo — and you can see it forming on the pressure charts 24-48 hours before it shows up in the forecast numbers.
+      </div>
+      <div class="formula-box">tight isobars + long fetch + sustained duration = big organised groundswell</div><br>
+      <div class="formula-box">swell speed ≈ period × 5.6 km/h → 14s swell ≈ 78 km/h ≈ 1,870 km/day</div>
+    </div>
+
+    <div class="explainer-card">
+      <h3>Customising for Your Break</h3>
+      <p>Every setting in the ⚙ panel directly feeds into the scoring algorithm. If the ratings don't match what you're seeing in the water, tweak the config:</p>
+      <div style="margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.65;">
+        <strong style="color:var(--text)">Swell window</strong> — Widen it if your break picks up swell from more directions than expected. Narrow it if swells from certain angles don't actually reach you.<br>
+        <strong style="color:var(--text)">Ideal height</strong> — Raise the max if your break handles bigger swell. Lower the min if you're happy surfing small days.<br>
+        <strong style="color:var(--text)">Offshore wind</strong> — Adjust based on which wind direction actually cleans up the face at your break. This varies by beach orientation.<br>
+        <strong style="color:var(--text)">Light wind threshold</strong> — Lower it if you notice even moderate onshore is ruining things. Raise it if your break handles more wind.<br><br>
+        Settings persist in <code style="color:var(--firing)">localStorage</code> — they'll survive closing the browser.
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Synoptic charts: <a href="https://eldersweather.com.au/synoptic" style="color:var(--accent)">Elders Weather</a> / WeatherZone — auto-updating daily &nbsp;|&nbsp;
+    Marine data: <a href="https://open-meteo.com" style="color:var(--accent)">Open-Meteo.com</a> — GFS Wave / MeteoFrance MFWAM &nbsp;|&nbsp;
+    Tide data is indicative only — check BOM for navigation &nbsp;|&nbsp;
+    Built with the surf-forecast-dashboard skill
+  </footer>
 </div>
 
 <script>
@@ -1048,10 +1288,83 @@ function loadSavedSettings() {
   } catch(e) {}
 }
 
+// ── Synoptic Chart Tabs ──────────────────────────────────────────────────
+
+const CHART_DAYS = [
+  { id: 'd0', label: 'Latest',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d0_640x480.jpg' },
+  { id: 'd1', label: 'Day +1',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d1_640x480.jpg' },
+  { id: 'd2', label: 'Day +2',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d2_640x480.jpg' },
+  { id: 'd3', label: 'Day +3',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d3_640x480.jpg' },
+  { id: 'd4', label: 'Day +4',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d4_640x480.jpg' },
+  { id: 'd5', label: 'Day +5',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d5_640x480.jpg' },
+  { id: 'd6', label: 'Day +6',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d6_640x480.jpg' },
+];
+
+function buildChartTabs() {
+  const tabsEl = document.getElementById('chart-tabs');
+  if (!tabsEl) return;
+
+  CHART_DAYS.forEach((day, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'chart-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = day.label;
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      showChart(i);
+    });
+    tabsEl.appendChild(tab);
+  });
+
+  showChart(0);
+}
+
+function showChart(idx) {
+  const contEl = document.getElementById('chart-container');
+  if (!contEl) return;
+  const day = CHART_DAYS[idx];
+
+  const forecastDate = new Date();
+  forecastDate.setDate(forecastDate.getDate() + idx);
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dateStr = `${dayNames[forecastDate.getDay()]} ${forecastDate.getDate()}/${forecastDate.getMonth()+1}`;
+
+  contEl.innerHTML = `
+    <div class="syn-card">
+      <div class="syn-label-bar">${idx === 0 ? 'Latest Analysis' : 'Forecast'} — ${dateStr}</div>
+      <img src="${day.url}"
+           alt="Synoptic chart ${day.label}"
+           loading="lazy"
+           onload="this.nextElementSibling.style.display='none'"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+      >
+      <div class="syn-fallback">
+        Chart may not load due to cross-origin restrictions.<br>
+        <a href="https://eldersweather.com.au/synoptic" target="_blank">View charts on Elders Weather →</a>
+      </div>
+    </div>
+    ${getChartAnalysis(idx)}
+  `;
+}
+
+function getChartAnalysis(idx) {
+  const tips = [
+    `<div class="analysis-box"><div class="a-label">What to look for — Current</div><p>Find Albany on the south coast. How close are the <span class="hl">isobars</span> over your area? (tight = windy, wide = calm). Where are the <span class="hl">lows</span>? (south/southwest = swell coming). Any <span class="wn">fronts</span> approaching from the west?</p><p>Low to the south with tight isobars + high building over land = <span class="gd">cleaning up with solid swell</span>. Front directly over Albany = <span class="bd">blown out</span>.</p></div>`,
+    `<div class="analysis-box"><div class="a-label">What to look for — Tomorrow</div><p>Has the low <span class="hl">deepened</span>? Has it <span class="hl">moved east</span>? Is a high building behind? Strong wind generation in <span class="hl">today's chart</span> over the Southern Ocean = swell arriving tomorrow.</p></div>`,
+    `<div class="analysis-box"><div class="a-label">What to look for — Day +2</div><p>Often <span class="gd">the sweet spot</span>. If a front passed recently, look for the <span class="hl">high pressure ridge</span> establishing over southern WA. Wide isobar spacing = light winds + swell from the departed low still running. <span class="gd">Dawn patrol material.</span></p></div>`,
+    `<div class="analysis-box"><div class="a-label">What to look for — Day +3</div><p>Current swell pulse <span class="wn">easing</span>? Check for the <span class="hl">next system developing</span> to the west — that's the next swell source. Track its potential path and depth.</p></div>`,
+    `<div class="analysis-box"><div class="a-label">What to look for — Day +4</div><p>Reliability decreases — read the <span class="hl">broad pattern</span>. Another frontal system approaching? Deep low developing south? Signs of the next significant swell event?</p></div>`,
+    `<div class="analysis-box"><div class="a-label">What to look for — Day +5</div><p>Focus on <span class="hl">overall pattern</span>. Active Southern Ocean (multiple lows tracking east) = consistent swell. Large blocking high = flat spell.</p></div>`,
+    `<div class="analysis-box"><div class="a-label">What to look for — Day +6</div><p>Use as a <span class="hl">trend indicator</span> only. Is the pattern trending toward more swell activity or less? Check back daily as this sharpens.</p></div>`,
+  ];
+  return tips[idx] || tips[6];
+}
+
 // ── Boot ───────────────────────────────────────────────────────────────────
 
 (async () => {
   loadSavedSettings();
+  buildChartTabs();
   fetchBuoyData(); // fire and forget — panel degrades gracefully on failure
   try {
     const { marine, wx, tideMap } = await fetchForecast(BREAK_CONFIG);
