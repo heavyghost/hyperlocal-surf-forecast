@@ -763,8 +763,8 @@
     // ── Your break ──────────────────────────────────
     name: "Midds Reef",
     location: "Albany, WA — Kinjarling",
-    lat: -35.0275,
-    lon: 117.8814,
+    lat: -35.018284816709595,
+    lon: 117.92140510974954,
 
     // ── Swell exposure window ────────────────────────
     // Swell coming FROM these compass bearings will hit your break.
@@ -1112,8 +1112,17 @@ function inRange(bearing, from, to) {
   return bearing >= from || bearing <= to;
 }
 
-function msToKnots(ms) { return Math.round(ms * 1.94384); }
-function mToFt(m) { return (m * 3.28084).toFixed(1); }
+// ── Wave correction (ML model exported as lookup table) ───
+let CORRECTION_TABLE = null;
+
+function correctSwellHeight(forecastHs, swellDir, month) {
+  if (!CORRECTION_TABLE || forecastHs == null || swellDir == null) return forecastHs;
+  const dirBin = (Math.round(swellDir / 30) * 30) % 360;
+  const htKey  = Math.min(4.0, Math.max(0.1, Math.round(forecastHs * 10) / 10)).toFixed(1);
+  return CORRECTION_TABLE?.[month]?.[dirBin]?.[htKey] ?? forecastHs;
+}
+
+function msToKnots(ms) { return Math.round(ms * 1.94384); }function mToFt(m) { return (m * 3.28084).toFixed(1); }
 
 function rateSurf(sh, sp, sd, ws, wd, config) {
   let score = 0;
@@ -1249,7 +1258,12 @@ function mergeData(marine, wx, tideMap) {
     waveH:   marine.hourly.wave_height?.[i],
     waveDir: marine.hourly.wave_direction?.[i],
     wavePer: marine.hourly.wave_period?.[i],
-    swellH:  marine.hourly.swell_wave_height?.[i],
+    swellH:  correctSwellHeight(
+               marine.hourly.swell_wave_height?.[i],
+               marine.hourly.swell_wave_direction?.[i],
+               new Date(t).getMonth() + 1
+             ),
+    rawSwellH: marine.hourly.swell_wave_height?.[i],    
     swellDir:marine.hourly.swell_wave_direction?.[i],
     swellPer:marine.hourly.swell_wave_period?.[i],
     windWH:  marine.hourly.wind_wave_height?.[i],
@@ -1894,6 +1908,15 @@ function getChartAnalysis(idx) {
   loadSavedSettings();
   buildChartTabs();
   fetchBuoyData(); // fire and forget — panel degrades gracefully on failure
+
+  try {
+    const ct = await fetch('correction_table.json').then(r => r.json());
+    CORRECTION_TABLE = ct;
+    console.log('Wave correction table loaded');
+  } catch(e) {
+    console.warn('Correction table not found — using raw forecast values');
+  }
+
   try {
     const { marine, wx, tideMap } = await fetchForecast(BREAK_CONFIG);
     _cachedMarine  = marine;
