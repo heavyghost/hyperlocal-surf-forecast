@@ -4,415 +4,577 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Midds Reef — Surf Forecast</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Barlow+Condensed:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Archivo:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet">
 <style>
+  /* ── AURORA DESIGN TOKENS ── */
   :root {
-    --bg: #060d15;
-    --bg2: #0a1520;
-    --bg3: #0f1e2e;
-    --border: #1a2e42;
-    --text: #c8dae8;
-    --muted: #4a6a82;
-    --firing: #00e5ff;
-    --good: #39ff14;
-    --ok: #ffd600;
-    --poor: #ff1744;
-    --accent: #0077b6;
+    --avbg:      #15130e;
+    --avbg2:     #1a1711;
+    --avcard:    #201d15;
+    --avborder:  #332e23;
+    --avborder2: #413a2c;
+    --avtext:    #f1ebdd;
+    --avmuted:   #9a8f78;
+    --avlabel:   #7a6f57;
+    --avacc:     oklch(0.80 0.10 195);
+    --avacc2:    oklch(0.70 0.10 200);
+    --avgreen:   oklch(0.79 0.12 150);
+    --avamber:   oklch(0.84 0.10  85);
+    --avred:     oklch(0.72 0.15  30);
+    --avchip:    #2a261b;
+    --avhairline: rgba(255,255,255,0.06);
+    /* Backward-compat aliases — existing JS color vars still resolve */
+    --bg:     var(--avbg);
+    --bg2:    var(--avbg2);
+    --bg3:    var(--avcard);
+    --border: var(--avborder);
+    --text:   var(--avtext);
+    --muted:  var(--avmuted);
+    --firing: var(--avacc);
+    --good:   var(--avgreen);
+    --ok:     var(--avamber);
+    --poor:   var(--avred);
+    --accent: var(--avacc);
+  }
+  [data-av-theme="light"] {
+    --avbg:      #f6f2ea;
+    --avbg2:     #f1ece1;
+    --avcard:    #fffdf8;
+    --avborder:  #ece4d4;
+    --avborder2: #e0d8c8;
+    --avtext:    #211d16;
+    --avmuted:   #8a8169;
+    --avlabel:   #a89e88;
+    --avacc:     oklch(0.50 0.13 215);
+    --avacc2:    oklch(0.58 0.12 205);
+    --avgreen:   oklch(0.56 0.13 150);
+    --avamber:   oklch(0.68 0.13  75);
+    --avred:     oklch(0.56 0.17  28);
+    --avchip:    #f1ece1;
+    --avhairline: rgba(20,18,12,0.05);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 15px;
+    background: var(--avbg);
+    color: var(--avtext);
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
     min-height: 100vh;
-    background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(0,119,182,0.15) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 100%, rgba(0,229,255,0.07) 0%, transparent 50%);
+    transition: background-color .3s, color .3s;
   }
 
-  /* ── GRAIN OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 0; opacity: 0.4;
-  }
+  ::-webkit-scrollbar { height: 8px; width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--avborder2); border-radius: 4px; }
 
-  .wrap { max-width: 960px; margin: 0 auto; padding: 16px 20px; position: relative; z-index: 1; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 20px 80px; }
 
   /* ── HEADER ── */
   header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 22px 0 18px;
-    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
     gap: 12px;
+    padding: 0 0 22px;
+    border-bottom: 1px solid var(--avborder);
+  }
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--avlabel);
+    margin-bottom: 6px;
   }
   .header-left h1 {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 2.8rem; font-weight: 900;
-    letter-spacing: -0.5px;
+    font-family: 'Newsreader', serif;
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: -1px;
     line-height: 1;
-    color: #fff;
-    text-transform: uppercase;
+    color: var(--avtext);
   }
   .header-left .sub {
-    color: var(--muted);
-    font-size: 10px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    margin-top: 5px;
+    font-family: 'Archivo', sans-serif;
+    color: var(--avmuted);
+    font-size: 13px;
+    margin-top: 6px;
   }
   .header-right {
-    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
-
-  /* ── SETTINGS BUTTON ── */
-  .settings-btn {
-    background: none; border: 1px solid var(--border); border-radius: 8px;
-    color: var(--muted); cursor: pointer; padding: 10px 14px; font-size: 16px;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  .settings-btn, #theme-btn {
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    color: var(--avmuted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.2s, color 0.2s;
     -webkit-tap-highlight-color: transparent;
   }
-  .settings-btn:hover { border-color: var(--firing); color: var(--firing); background: rgba(0,229,255,0.05); }
+  #theme-btn { color: var(--avacc); font-size: 15px; }
+  .settings-btn:hover { border-color: var(--avborder2); color: var(--avtext); }
+  #theme-btn:hover { border-color: var(--avacc); }
 
   /* ── HERO CARD ── */
   .hero-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 24px 24px 28px;
-    margin: 20px 0 16px;
-    position: relative;
-    overflow: hidden;
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 20px;
+    padding: 34px 36px;
+    margin-top: 22px;
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: center;
+    transition: border-color .3s;
   }
-  .hero-card::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 0% 40%, rgba(0,229,255,0.08) 0%, transparent 55%);
-    pointer-events: none;
-  }
-  .hero-card.hero-firing {
-    border-color: rgba(0,229,255,0.4);
-    box-shadow: 0 0 32px rgba(0,229,255,0.07), inset 0 1px 0 rgba(0,229,255,0.1);
-  }
-  .hero-card.hero-firing::before {
-    background: radial-gradient(ellipse at 0% 40%, rgba(0,229,255,0.1) 0%, transparent 55%);
-  }
-  .hero-card.hero-good {
-    border-color: rgba(57,255,20,0.35);
-    box-shadow: 0 0 32px rgba(57,255,20,0.06), inset 0 1px 0 rgba(57,255,20,0.08);
-  }
-  .hero-card.hero-good::before {
-    background: radial-gradient(ellipse at 0% 40%, rgba(57,255,20,0.07) 0%, transparent 55%);
-  }
-  .hero-card.hero-ok {
-    border-color: rgba(255,214,0,0.3);
-    box-shadow: 0 0 32px rgba(255,214,0,0.05);
-  }
-  .hero-card.hero-poor {
-    border-color: rgba(255,23,68,0.3);
-    box-shadow: 0 0 32px rgba(255,23,68,0.04);
-  }
+  .hero-card.hero-firing { border-color: color-mix(in srgb, var(--avacc)   40%, transparent); }
+  .hero-card.hero-good   { border-color: color-mix(in srgb, var(--avgreen) 35%, transparent); }
+  .hero-card.hero-ok     { border-color: color-mix(in srgb, var(--avamber) 30%, transparent); }
+  .hero-card.hero-poor   { border-color: color-mix(in srgb, var(--avred)   30%, transparent); }
 
-  /* Thin coloured strip at left edge of hero */
-  .hero-card::after {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 4px; border-radius: 16px 0 0 16px;
-    background: var(--border);
+  .hero-left { flex: 1; min-width: 240px; }
+  .hero-pulse-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
   }
-  .hero-card.hero-firing::after { background: var(--firing); }
-  .hero-card.hero-good::after   { background: var(--good); }
-  .hero-card.hero-ok::after     { background: var(--ok); }
-  .hero-card.hero-poor::after   { background: var(--poor); }
-
-  .hero-top {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    gap: 20px; flex-wrap: wrap;
+  .hero-pulse-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--avacc);
+    box-shadow: 0 0 14px var(--avacc);
+    flex-shrink: 0;
   }
-  .hero-rating-block { display: flex; flex-direction: column; gap: 2px; }
-  .hero-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 5.5rem; font-weight: 900;
-    line-height: 0.85; letter-spacing: -2px;
+  .hero-eyebrow {
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
     text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--avlabel);
   }
-  .hero-sublabel {
-    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); margin-top: 10px;
+  .hero-verdict {
+    font-family: 'Newsreader', serif;
+    font-weight: 600;
+    font-size: 92px;
+    line-height: 0.9;
+    letter-spacing: -3px;
+    margin-top: 6px;
   }
-  .hero-window {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.5rem; font-weight: 700;
-    color: #fff; margin-top: 2px; letter-spacing: 0.5px;
+  .hero-desc {
+    font-family: 'Archivo', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--avmuted);
+    margin-top: 16px;
   }
+  .hero-desc strong { color: var(--avtext); }
 
-  .hero-stats {
-    display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;
-    padding-top: 4px;
+  .hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
   }
-  .hero-stat { display: flex; flex-direction: column; gap: 4px; min-width: 64px; }
-  .hero-stat .hs-label {
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  .hero-chip {
+    background: var(--avchip);
+    border-radius: 16px;
+    padding: 18px 22px;
+    min-width: 104px;
   }
-  .hero-stat .hs-val { font-size: 2rem; font-weight: 700; color: #fff; line-height: 1; }
-  .hero-stat .hs-val.big { font-size: 3rem; }
-  .hero-stat .hs-unit { font-size: 12px; color: var(--muted); }
-
-  .hero-divider {
-    width: 1px; height: 52px; background: var(--border);
-    align-self: center;
+  .hc-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--avlabel);
+    margin-bottom: 4px;
   }
-
-  .hero-bottom {
-    margin-top: 20px; padding-top: 16px;
-    border-top: 1px solid var(--border);
-    display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+  .hc-val {
+    font-family: 'Newsreader', serif;
+    font-size: 38px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--avtext);
   }
-  .hero-now-label {
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+  .hc-val.wind-good { color: var(--avgreen); }
+  .hc-unit {
+    font-size: 16px;
+    color: var(--avmuted);
+    font-weight: 400;
   }
-  .hero-now-val { font-size: 13px; color: var(--text); margin-top: 4px; line-height: 1.4; }
+  .hc-sub {
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    color: var(--avmuted);
+    margin-top: 4px;
+  }
 
   /* ── LOADING / ERROR ── */
   .loading {
-    text-align: center; padding: 60px 20px;
-    color: var(--muted); font-size: 14px;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--avmuted);
+    font-size: 14px;
+    font-family: 'Archivo', sans-serif;
   }
   .loading .spinner {
     width: 32px; height: 32px;
-    border: 2px solid var(--border);
-    border-top-color: var(--firing);
+    border: 2px solid var(--avborder);
+    border-top-color: var(--avacc);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     margin: 0 auto 16px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── LIVE BUOY PANEL (prominent) ── */
+  /* ── BUOY PANEL ── */
   .buoy-panel {
-    background: var(--bg2);
-    border: 1px solid var(--border);
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-left: 3px solid var(--avacc);
     border-radius: 14px;
-    padding: 22px 24px;
-    margin: 0 0 24px;
-    display: grid;
-    grid-template-columns: auto 1px 1fr 1px auto;
-    align-items: center;
-    gap: 0;
-    position: relative;
-    overflow: hidden;
+    padding: 20px 24px;
+    margin: 16px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-start;
   }
-  .buoy-panel::before {
-    content: '';
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 4px; background: var(--firing); border-radius: 14px 0 0 14px;
-  }
-  .buoy-panel.buoy-error { opacity: 0.5; }
-  .buoy-panel.buoy-error::before { background: var(--muted); }
-
-  .buoy-primary {
-    display: flex; flex-direction: column; gap: 2px;
-    padding-right: 24px; padding-left: 8px;
-  }
+  .buoy-panel.buoy-error { opacity: 0.5; border-left-color: var(--avlabel); }
+  .buoy-primary { display: flex; flex-direction: column; gap: 2px; }
   .buoy-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.8rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1.5px;
-    color: var(--muted); white-space: nowrap;
-    margin-bottom: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--avlabel);
+    margin-bottom: 8px;
+    white-space: nowrap;
   }
-  .buoy-title span { color: var(--firing); }
+  .buoy-title span { color: var(--avacc); }
   .buoy-hs-big {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 4.5rem; font-weight: 900;
-    color: var(--firing); line-height: 0.85;
-    letter-spacing: -2px;
-  }
-  .buoy-hs-unit { font-size: 1.3rem; color: var(--muted); font-weight: 400; }
-  .buoy-hs-label {
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); margin-top: 8px;
-  }
-
-  .buoy-sep { width: 1px; background: var(--border); align-self: stretch; }
-
-  .buoy-secondaries {
-    display: flex; gap: 0; padding: 0 24px;
-  }
-  .buoy-stat { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-  .buoy-stat .bs-label {
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
-  }
-  .buoy-stat .bs-val { font-size: 1.2rem; font-weight: 600; color: #fff; }
-
-  .buoy-meta {
-    display: flex; flex-direction: column; gap: 6px;
-    padding-left: 24px; text-align: right;
-  }
-  .buoy-age { font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .buoy-cors-note {
-    font-size: 11px; color: var(--muted); font-style: italic;
-    grid-column: 1 / -1; margin-top: 12px; padding-left: 8px;
-  }
-
-  /* ── DAILY STRIP ── */
-  .daily-strip {
-    display: flex; gap: 10px;
-    overflow-x: auto; padding: 4px 0 12px;
-    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-    -webkit-overflow-scrolling: touch;
-    margin: 0 -4px;
-    padding-left: 4px;
-    padding-right: 4px;
-  }
-  .day-card {
-    flex: 0 0 150px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s, transform 0.15s;
-    text-align: center;
-    overflow: hidden;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .day-card:hover { border-color: var(--accent); background: var(--bg3); transform: translateY(-2px); }
-  .day-card:active { transform: translateY(0); }
-  .day-card.active { border-color: var(--firing); background: var(--bg3); }
-
-  /* Colour band across top of card — thicker now */
-  .dc-band {
-    height: 8px; width: 100%;
-    background: var(--border);
-  }
-
-  .dc-inner { padding: 14px 12px 16px; }
-  .day-card .dc-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 700; font-size: 1.5rem;
-    text-transform: uppercase; color: #fff;
+    font-family: 'Newsreader', serif;
+    font-size: 2.8rem;
+    font-weight: 500;
+    color: var(--avacc);
     line-height: 1;
   }
-  .day-card .dc-date { color: var(--muted); font-size: 11px; margin-bottom: 12px; margin-top: 2px; }
-  .day-card .dc-rating {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.1rem; font-weight: 700; letter-spacing: 1px;
-    display: block; margin-bottom: 10px;
+  .buoy-hs-unit { font-size: 1.1rem; color: var(--avmuted); font-weight: 400; }
+  .buoy-hs-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
     text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--avlabel);
+    margin-top: 4px;
   }
-  .day-card .dc-swell { font-size: 13px; color: var(--text); line-height: 1.4; font-weight: 600; }
-  .day-card .dc-wind { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .buoy-sep { display: none; }
+  .buoy-secondaries {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .buoy-stat { display: flex; flex-direction: column; gap: 4px; }
+  .buoy-stat .bs-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--avlabel);
+  }
+  .buoy-stat .bs-val {
+    font-family: 'Newsreader', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--avtext);
+  }
+  .buoy-meta {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+  }
+  .buoy-age {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--avlabel);
+    white-space: nowrap;
+  }
+  .buoy-cors-note {
+    font-size: 11px;
+    color: var(--avmuted);
+    font-style: italic;
+    flex-basis: 100%;
+    margin-top: 4px;
+  }
 
-  /* ── CONFIG STRIP (compact) ── */
+  /* ── CONFIG STRIP ── */
   .config-strip {
     background: transparent;
-    border: 1px solid var(--border);
+    border: 1px solid var(--avborder);
     border-radius: 8px;
     padding: 10px 16px;
-    margin: 0 0 0;
-    display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
-    opacity: 0.75;
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    opacity: 0.7;
     transition: opacity 0.2s;
   }
   .config-strip:hover { opacity: 1; }
   .config-strip .cfg-item { display: flex; flex-direction: column; gap: 2px; }
-  .config-strip .cfg-label { color: var(--muted); font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; }
-  .config-strip .cfg-value { color: var(--firing); font-size: 11px; font-weight: 600; }
-  .config-strip .sep { width: 1px; height: 24px; background: var(--border); }
+  .config-strip .cfg-label {
+    color: var(--avlabel);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .config-strip .cfg-value {
+    color: var(--avacc);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+  .config-strip .sep { width: 1px; height: 24px; background: var(--avborder); }
 
   /* ── SETTINGS PANEL ── */
   .settings-panel {
     display: none;
-    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 20px; margin: 12px 0;
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
   }
   .settings-panel.open { display: block; }
-
   .settings-panel h3 {
-    font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem;
-    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: #fff; margin-bottom: 16px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--avtext);
+    margin-bottom: 16px;
   }
-
   .settings-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
   }
-
   .setting-group { display: flex; flex-direction: column; gap: 6px; }
   .setting-group label {
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--avlabel);
   }
   .setting-group .input-row { display: flex; gap: 6px; align-items: center; }
-  .setting-group .range-label { font-size: 10px; color: var(--muted); min-width: 24px; }
-
+  .setting-group .range-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--avmuted);
+    min-width: 24px;
+  }
   .settings-panel input[type="number"],
   .settings-panel input[type="text"] {
-    background: var(--bg3); border: 1px solid var(--border); border-radius: 4px;
-    color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    padding: 5px 8px; width: 70px;
+    background: var(--avbg2);
+    border: 1px solid var(--avborder);
+    border-radius: 4px;
+    color: var(--avtext);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 5px 8px;
+    width: 70px;
     transition: border-color 0.15s;
   }
   .settings-panel input[type="text"] { width: 100%; }
-  .settings-panel input:focus { outline: none; border-color: var(--firing); }
-
+  .settings-panel input:focus { outline: none; border-color: var(--avacc); }
   .compass-preview {
-    font-size: 10px; color: var(--firing); margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--avacc);
+    margin-top: 2px;
   }
-
   .settings-actions {
-    display: flex; gap: 10px; margin-top: 20px; padding-top: 16px;
-    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--avborder);
   }
   .btn-save {
-    background: var(--firing); color: #000; border: none; border-radius: 5px;
-    font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase; padding: 10px 22px;
-    cursor: pointer; transition: opacity 0.15s;
+    background: var(--avacc);
+    color: var(--avbg);
+    border: none;
+    border-radius: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: opacity 0.15s;
   }
   .btn-save:hover { opacity: 0.85; }
   .btn-reset {
-    background: none; color: var(--muted); border: 1px solid var(--border);
-    border-radius: 5px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    padding: 10px 16px; cursor: pointer; transition: border-color 0.15s, color 0.15s;
+    background: none;
+    color: var(--avmuted);
+    border: 1px solid var(--avborder);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
   }
-  .btn-reset:hover { border-color: var(--muted); color: var(--text); }
+  .btn-reset:hover { border-color: var(--avmuted); color: var(--avtext); }
+
+  /* ── SECTION EYEBROW ── */
+  .section-eyebrow {
+    margin-top: 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--avlabel);
+    margin-bottom: 14px;
+  }
+
+  /* ── DAILY STRIP (week at a glance) ── */
+  .daily-strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 0 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--avborder) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  .day-card {
+    flex: 0 0 84px;
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 14px;
+    padding: 12px 8px 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day-card:hover  { border-color: var(--avborder2); }
+  .day-card.active { border-color: var(--avacc); }
+  .dc-band  { display: none; }
+  .dc-inner { padding: 0; }
+  .day-card .dc-name {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--avtext);
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .day-card .dc-date {
+    color: var(--avlabel);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  .dc-bar-wrap {
+    width: 14px;
+    height: 48px;
+    background: var(--avchip);
+    border-radius: 4px;
+    margin: 0 auto 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .dc-bar-fill { border-radius: 4px; }
+  .day-card .dc-swell {
+    font-family: 'Newsreader', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--avtext);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .day-card .dc-rating {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 2px;
+  }
+  .day-card .dc-wind { display: none; }
 
   /* ── DAY SECTIONS ── */
+  .forecast-days { margin-top: 8px; }
   .day-section {
     margin-top: 36px;
-    padding-top: 28px;
-    border-top: 1px solid var(--border);
+    padding-top: 22px;
+    border-top: 1px solid var(--avborder);
   }
   .day-section:first-child { border-top: none; margin-top: 24px; padding-top: 0; }
-
   .day-header {
-    display: flex; align-items: baseline; gap: 12px;
-    margin-bottom: 16px; flex-wrap: wrap;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
   }
   .day-header-name {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.8rem; font-weight: 700;
-    text-transform: uppercase; color: #fff;
+    font-family: 'Newsreader', serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--avtext);
     line-height: 1;
   }
+  .day-header-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--avmuted);
+    text-transform: uppercase;
+  }
   .day-header-rating {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.2rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 4px 12px;
   }
   .day-header .sun-times {
-    font-size: 11px; color: var(--muted);
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 400; margin-left: auto;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    color: var(--avmuted);
+    margin-left: auto;
   }
 
-  /* ── BEST SLOTS SUMMARY ── */
+  /* ── SLOT PILLS ── */
   .best-slots {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -420,130 +582,151 @@
     margin-bottom: 14px;
   }
   .slot-pill {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 12px;
     padding: 14px 16px;
-    display: flex; flex-direction: column; gap: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     cursor: default;
-    transition: border-color 0.15s, background 0.15s;
-    min-height: 90px;
   }
-  .slot-pill:hover { background: var(--bg3); }
+  .slot-pill.pill-firing { border-left: 3px solid var(--avacc); }
+  .slot-pill.pill-good   { border-left: 3px solid var(--avgreen); }
+  .slot-pill.pill-ok     { border-left: 3px solid var(--avamber); }
+  .slot-pill.pill-poor   { border-left: 3px solid var(--avred); }
   .slot-pill .sp-time {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.35rem; font-weight: 700; color: #fff; line-height: 1;
-    letter-spacing: 0.5px;
+    font-family: 'Newsreader', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--avtext);
+    line-height: 1;
   }
   .slot-pill .sp-rating {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1rem; font-weight: 700; letter-spacing: 1px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
     text-transform: uppercase;
   }
   .slot-pill .sp-swell {
-    font-size: 13px; color: var(--text); margin-top: 4px;
-    font-weight: 600;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--avtext);
+    margin-top: 4px;
   }
-  .slot-pill .sp-wind { font-size: 11px; color: var(--muted); margin-top: 1px; }
-
-  /* Rating-coloured left border on slot pills */
-  .slot-pill.pill-firing { border-left: 3px solid var(--firing); }
-  .slot-pill.pill-good   { border-left: 3px solid var(--good); }
-  .slot-pill.pill-ok     { border-left: 3px solid var(--ok); }
-  .slot-pill.pill-poor   { border-left: 3px solid var(--poor); }
+  .slot-pill .sp-wind {
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    color: var(--avmuted);
+  }
 
   /* ── EXPAND TOGGLE ── */
   .expand-toggle {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: none; border: 1px solid var(--border); border-radius: 8px;
-    color: var(--muted); cursor: pointer; padding: 11px 16px;
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    text-transform: uppercase; letter-spacing: 1.5px;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-    margin-bottom: 16px; width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid var(--avborder);
+    border-radius: 999px;
+    color: var(--avmuted);
+    cursor: pointer;
+    padding: 9px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: border-color 0.15s, color 0.15s;
+    margin-bottom: 16px;
+    width: 100%;
     -webkit-tap-highlight-color: transparent;
   }
-  .expand-toggle:hover { border-color: var(--text); color: var(--text); background: var(--bg2); }
+  .expand-toggle:hover { border-color: var(--avborder2); color: var(--avtext); }
   .expand-toggle .et-arrow { transition: transform 0.25s; display: inline-block; }
   .expand-toggle.open .et-arrow { transform: rotate(180deg); }
-
   .full-table-wrap { display: none; }
   .full-table-wrap.open { display: block; }
 
-  /* ── FORECAST DAYS CONTAINER ── */
-  .forecast-days { margin-top: 8px; }
-
-  /* ── TABLE SCROLL WRAPPER ── */
-  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
-
   /* ── FORECAST TABLE ── */
-  .forecast-table { width: 100%; border-collapse: collapse; }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--avborder);
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .forecast-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .forecast-table th {
-    text-align: left; padding: 10px 12px;
-    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--muted); border-bottom: 1px solid var(--border);
-    white-space: nowrap; background: var(--bg2);
+    text-align: left;
+    padding: 10px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--avlabel);
+    border-bottom: 1px solid var(--avborder);
+    white-space: nowrap;
+    background: var(--avcard);
   }
   .forecast-table td {
-    padding: 13px 12px; border-bottom: 1px solid rgba(26,46,66,0.5);
-    white-space: nowrap; vertical-align: middle;
+    padding: 11px 10px;
+    border-bottom: 1px solid var(--avhairline);
+    white-space: nowrap;
+    vertical-align: middle;
   }
   .forecast-table tr:last-child td { border-bottom: none; }
-  .forecast-table tr:hover td { background: rgba(15,30,46,0.8); }
-
-  /* Dawn patrol highlight */
-  .forecast-table tr.dawn-patrol td { background: rgba(0,119,182,0.08); }
-  .forecast-table tr.dawn-patrol:hover td { background: rgba(0,119,182,0.14); }
+  .forecast-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .forecast-table tr.dawn-patrol td { background: var(--avbg2); }
+  .forecast-table tr.dawn-patrol:hover td { background: color-mix(in srgb, var(--avbg2) 70%, var(--avborder)); }
 
   .rating-pill {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
-    padding: 5px 11px; border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 9px;
+    border-radius: 999px;
     display: inline-block;
+    text-transform: uppercase;
   }
-  .time-cell { color: #fff; font-weight: 600; font-size: 1rem; }
-  .swell-height { font-size: 1.1rem; font-weight: 700; color: #fff; }
-  .period { color: var(--text); font-size: 1rem; }
-  .dir-arrow { font-size: 1rem; }
-  .muted-cell { color: var(--muted); }
-  .reason-cell { color: var(--muted); font-size: 11px; font-style: italic; }
-  .reason-offshore { color: #39ff14; font-size: 11px; font-style: italic; }
-  .reason-onshore  { color: #ff1744; font-size: 11px; font-style: italic; }
+  .time-cell  { font-family: 'Archivo', sans-serif; color: var(--avtext); font-size: 13px; }
+  .swell-height { font-family: 'Newsreader', serif; font-size: 16px; color: var(--avtext); }
+  .period    { color: var(--avmuted); }
+  .dir-arrow { color: var(--avacc); }
+  .muted-cell { color: var(--avmuted); }
+  .reason-cell    { color: var(--avmuted);  font-size: 11px; font-style: italic; }
+  .reason-offshore { color: var(--avgreen); font-size: 11px; font-style: italic; }
+  .reason-onshore  { color: var(--avred);   font-size: 11px; font-style: italic; }
 
   /* ── TIDE CELL ── */
   .tide-cell { white-space: nowrap; }
   .tide-bar-wrap {
-    display: inline-block; width: 36px; height: 6px;
-    background: var(--border); border-radius: 3px;
-    vertical-align: middle; margin-right: 5px; overflow: hidden;
+    display: inline-block;
+    width: 36px; height: 5px;
+    background: var(--avborder);
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-right: 5px;
+    overflow: hidden;
   }
-  .tide-bar-fill {
-    height: 100%; border-radius: 3px;
-    background: linear-gradient(90deg, #0077b6, #00e5ff);
-  }
-  .tide-val { font-size: 13px; color: var(--text); }
-  .tide-trend { font-size: 13px; color: var(--muted); margin-left: 2px; }
+  .tide-bar-fill { height: 100%; border-radius: 3px; background: var(--avacc2); }
+  .tide-val   { font-size: 13px; color: var(--avmuted); }
+  .tide-trend { font-size: 13px; color: var(--avmuted); margin-left: 2px; }
 
-  /* ── FOOTER ── */
-  footer {
-    margin-top: 56px; padding: 20px 0;
-    border-top: 1px solid var(--border);
-    color: var(--muted); font-size: 10px; letter-spacing: 1px;
-    text-transform: uppercase; line-height: 2;
-    opacity: 0.7;
-  }
-
-  /* ── COLLAPSIBLE SECTION (details/summary) ── */
+  /* ── COLLAPSIBLE SECTIONS ── */
   .collapsible {
-    margin: 28px 0;
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    margin-top: 48px;
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 20px;
     overflow: hidden;
   }
   .collapsible summary {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px;
-    background: var(--bg2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
     cursor: pointer;
     list-style: none;
     user-select: none;
@@ -551,208 +734,284 @@
     transition: background 0.15s;
   }
   .collapsible summary::-webkit-details-marker { display: none; }
-  .collapsible summary:hover { background: var(--bg3); }
+  .collapsible summary:hover { background: color-mix(in srgb, var(--avcard) 60%, var(--avborder)); }
   .collapsible-title {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 1.2rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text); display: flex; align-items: center; gap: 10px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--avtext);
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
   .collapsible-title .sl-sub {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--muted);
-    font-weight: 400; letter-spacing: 1px;
-    text-transform: none;
+    font-size: 10px;
+    color: var(--avlabel);
+    font-weight: 400;
+    letter-spacing: 1px;
   }
   .collapsible-chevron {
-    color: var(--muted); font-size: 13px;
+    color: var(--avlabel);
+    font-size: 13px;
     transition: transform 0.25s;
     flex-shrink: 0;
   }
   details.collapsible[open] .collapsible-chevron { transform: rotate(180deg); }
   .collapsible-body {
-    padding: 20px;
-    background: var(--bg);
-    border-top: 1px solid var(--border);
+    padding: 28px 30px;
+    border-top: 1px solid var(--avborder);
   }
-
-  /* ── SYNOPTIC CHARTS ── */
-  .chart-tabs {
-    display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;
-  }
-  .chart-tab {
-    font-family: 'JetBrains Mono', monospace; font-size: 10px;
-    padding: 6px 12px; border-radius: 5px;
-    background: var(--bg2); border: 1px solid var(--border);
-    color: var(--muted); cursor: pointer;
-    transition: all 0.15s; text-transform: uppercase; letter-spacing: 1px;
-  }
-  .chart-tab:hover { border-color: var(--accent); color: var(--text); }
-  .chart-tab.active { background: rgba(0,229,255,0.1); border-color: var(--firing); color: var(--firing); }
-
-  .syn-card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 8px; overflow: hidden;
-  }
-  .syn-card .syn-label-bar {
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--muted); padding: 8px 12px;
-    background: var(--bg3); border-bottom: 1px solid var(--border);
-  }
-  .syn-card img { width: 100%; display: block; opacity: 0.95; }
-  .syn-fallback {
-    padding: 60px 20px; text-align: center; color: var(--muted);
-    font-size: 12px; display: none;
-  }
-  .syn-fallback a { color: var(--accent); text-decoration: none; }
-
-  .analysis-box {
-    background: var(--bg2); border: 1px solid rgba(0,229,255,0.12);
-    border-radius: 8px; padding: 14px 16px; margin-top: 12px;
-  }
-  .analysis-box .a-label {
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--firing); margin-bottom: 8px;
-  }
-  .analysis-box p { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 6px; }
-  .analysis-box p:last-child { margin-bottom: 0; }
-  .hl { color: var(--firing); font-weight: 600; }
-  .gd { color: var(--good); font-weight: 600; }
-  .wn { color: var(--ok); font-weight: 600; }
-  .bd { color: var(--poor); font-weight: 600; }
 
   /* ── READING GUIDE ── */
-  .reading-guide {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 16px 18px; margin-bottom: 16px;
-  }
+  .reading-guide { margin-bottom: 24px; }
   .reading-guide h3 {
-    font-family: 'Barlow Condensed', sans-serif; font-size: 1.05rem;
-    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--ok); margin-bottom: 12px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--avlabel);
+    margin-bottom: 12px;
   }
   .rg-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
   .rg-item {
-    display: flex; align-items: flex-start; gap: 8px;
-    font-size: 12px; color: var(--muted); line-height: 1.5;
+    background: var(--avbg2);
+    border: 1px solid var(--avborder);
+    border-radius: 12px;
+    padding: 13px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
   }
-  .rg-item .rg-icon { color: var(--firing); flex-shrink: 0; width: 16px; text-align: center; margin-top: 1px; }
-  .rg-item strong { color: var(--text); }
+  .rg-icon-box {
+    width: 30px; height: 30px;
+    background: var(--avchip);
+    border-radius: 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Newsreader', serif;
+    font-size: 16px;
+    color: var(--avacc);
+  }
+  .rg-body {
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    color: var(--avmuted);
+    line-height: 1.5;
+  }
+  .rg-body strong { color: var(--avtext); display: block; margin-bottom: 2px; }
+
+  /* ── CHART TABS ── */
+  .chart-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .chart-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 7px 15px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid var(--avborder);
+    color: var(--avmuted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .chart-tab:hover { border-color: var(--avborder2); color: var(--avtext); }
+  .chart-tab.active { background: var(--avacc); border-color: var(--avacc); color: var(--avbg); }
+
+  .syn-card {
+    background: var(--avbg2);
+    border: 1px solid var(--avborder);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .syn-card .syn-label-bar {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--avlabel);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--avborder);
+  }
+  .syn-card img {
+    width: 100%;
+    display: block;
+    max-height: 520px;
+    object-fit: contain;
+    background: #f4f3ee;
+  }
+  .syn-fallback {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--avmuted);
+    font-size: 12px;
+    display: none;
+  }
+  .syn-fallback a { color: var(--avacc); text-decoration: none; }
+
+  .analysis-box {
+    background: var(--avchip);
+    border: 1px solid var(--avborder);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 12px;
+  }
+  .analysis-box .a-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--avacc);
+    margin-bottom: 8px;
+  }
+  .analysis-box p {
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--avmuted);
+    line-height: 1.65;
+    margin-bottom: 6px;
+  }
+  .analysis-box p:last-child { margin-bottom: 0; }
+  .hl { color: var(--avacc);   font-weight: 600; }
+  .gd { color: var(--avgreen); font-weight: 600; }
+  .wn { color: var(--avamber); font-weight: 600; }
+  .bd { color: var(--avred);   font-weight: 600; }
 
   /* ── SCORING EXPLAINER ── */
   .explainer-card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 16px 18px; margin-bottom: 12px;
+    background: var(--avbg2);
+    border: 1px solid var(--avborder);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
   }
   .explainer-card h3 {
-    font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem;
-    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: #b388ff; margin-bottom: 10px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--avtext);
+    margin-bottom: 10px;
   }
   .explainer-card p {
-    font-size: 13px; color: var(--muted); line-height: 1.7;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    color: var(--avmuted);
+    line-height: 1.7;
   }
-  .score-breakdown {
-    margin-top: 12px;
-    border-collapse: collapse;
-    width: 100%;
-  }
+  .score-breakdown { margin-top: 12px; border-collapse: collapse; width: 100%; }
   .score-breakdown th, .score-breakdown td {
-    text-align: left; padding: 7px 10px; font-size: 12px;
-    border-bottom: 1px solid rgba(26,46,66,0.5);
+    text-align: left;
+    padding: 7px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--avhairline);
   }
   .score-breakdown th {
-    color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--avlabel);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--avborder);
   }
-  .score-breakdown td { color: var(--text); }
-  .score-breakdown .pts { color: var(--firing); font-weight: 700; }
+  .score-breakdown td {
+    font-family: 'Archivo', sans-serif;
+    color: var(--avtext);
+  }
+  .score-breakdown .pts {
+    font-family: 'Newsreader', serif;
+    font-size: 18px;
+    color: var(--avacc);
+  }
   .formula-box {
-    font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    color: var(--firing); background: var(--bg3);
-    padding: 10px 14px; border-radius: 4px; margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--avacc);
+    background: var(--avchip);
+    padding: 11px 14px;
+    border-radius: 8px;
+    margin-top: 10px;
     display: inline-block;
   }
   .rating-example {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: 'JetBrains Mono', monospace; font-size: 12px;
-    margin-right: 16px; margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 13px;
+    margin-right: 16px;
+    margin-top: 6px;
   }
-  .rating-example .dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    display: inline-block;
+  .rating-example .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 56px;
+    padding: 20px 0;
+    border-top: 1px solid var(--avborder);
+    color: var(--avlabel);
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    line-height: 2;
+    opacity: 0.8;
   }
+  footer a { color: var(--avacc); text-decoration: none; }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 640px) {
-    .wrap { padding: 12px 14px; }
-    .header-left h1 { font-size: 2rem; }
+    .wrap { padding: 16px 14px 60px; }
+    .header-left h1 { font-size: 32px; }
+    .hero-card { padding: 24px 20px; gap: 24px; border-radius: 16px; }
+    .hero-verdict { font-size: 64px; }
+    .hc-val { font-size: 28px; }
+    .hero-chips { gap: 8px; }
+    .hero-chip { padding: 14px 16px; min-width: 88px; }
 
-    /* Hero — stay big and bold on mobile */
-    .hero-card { padding: 22px 16px 20px 22px; }
-    .hero-label { font-size: 4.2rem; letter-spacing: -1px; }
-    .hero-window { font-size: 1.25rem; }
-    .hero-stat .hs-val { font-size: 1.8rem; }
-    .hero-stat .hs-val.big { font-size: 2.4rem; }
-    .hero-stats { gap: 14px; }
-    .hero-divider { height: 44px; }
-    .hero-top { flex-direction: column; gap: 16px; }
-    .hero-stats { width: 100%; justify-content: flex-start; }
+    .buoy-panel { gap: 16px; }
+    .buoy-hs-big { font-size: 2.2rem; }
+    .buoy-secondaries { gap: 16px; }
+    .buoy-meta { margin-left: 0; text-align: left; }
 
-    /* Buoy: stack into two rows */
-    .buoy-panel {
-      grid-template-columns: 1fr;
-      gap: 16px;
-      padding: 18px 18px 18px 22px;
-    }
-    .buoy-primary { padding-right: 0; padding-left: 4px; }
-    .buoy-sep { display: none; }
-    .buoy-secondaries { padding: 0; gap: 18px; }
-    .buoy-meta { padding-left: 0; text-align: left; }
-    .buoy-hs-big { font-size: 3.8rem; }
+    .day-card { flex: 0 0 72px; }
 
-    /* Day strip: slightly smaller cards on mobile */
-    .day-card { flex: 0 0 128px; }
+    .best-slots { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .slot-pill { padding: 12px 10px; }
+    .slot-pill .sp-time { font-size: 18px; }
 
-    /* Best slots: 3-column on mobile is fine, but allow 2 if they're clipped */
-    .best-slots {
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-    .slot-pill { padding: 12px 10px; min-height: 80px; }
-    .slot-pill .sp-time { font-size: 1.1rem; }
-    .slot-pill .sp-swell { font-size: 12px; }
+    .day-section { margin-top: 28px; padding-top: 20px; }
+    .day-header-name { font-size: 22px; }
 
-    /* Day section more breathing room */
-    .day-section { margin-top: 28px; padding-top: 24px; }
-    .day-header-name { font-size: 1.5rem; }
+    .rg-grid { grid-template-columns: 1fr 1fr; }
+    .collapsible-body { padding: 20px 16px; }
 
-    /* On mobile hide: Swell Dir (col 5), Wind Dir (col 7), SST (col 9), Notes (col 10) */
-    .forecast-table th:nth-child(5),
-    .forecast-table td:nth-child(5),
-    .forecast-table th:nth-child(7),
-    .forecast-table td:nth-child(7),
-    .forecast-table th:nth-child(9),
-    .forecast-table td:nth-child(9),
-    .forecast-table th:nth-child(10),
-    .forecast-table td:nth-child(10) { display: none; }
+    /* Hide: Swell Dir (col 5), Wind Dir (col 7), SST (col 9), Notes (col 10) */
+    .forecast-table th:nth-child(5), .forecast-table td:nth-child(5),
+    .forecast-table th:nth-child(7), .forecast-table td:nth-child(7),
+    .forecast-table th:nth-child(9), .forecast-table td:nth-child(9),
+    .forecast-table th:nth-child(10),.forecast-table td:nth-child(10) { display: none; }
 
-    .rg-grid { grid-template-columns: 1fr; }
     .config-strip { gap: 10px; }
-    .expand-toggle { padding: 13px 16px; }
   }
-
-  /* Larger phones / small tablets: stay comfortable */
   @media (min-width: 390px) and (max-width: 640px) {
-    .slot-pill .sp-time { font-size: 1.2rem; }
-    .slot-pill { padding: 13px 12px; }
+    .best-slots { grid-template-columns: repeat(3, 1fr); }
   }
 </style>
 </head>
-<body>
+<body data-av-theme="dark">
 <div class="wrap">
 
   <!-- ════════════════════════════════════════════════
@@ -793,10 +1052,12 @@
 
   <header>
     <div class="header-left">
+      <div class="header-eyebrow" id="header-eyebrow">&nbsp;</div>
       <h1 id="break-name">—</h1>
       <div class="sub" id="break-location">Loading…</div>
     </div>
     <div class="header-right">
+      <button id="theme-btn" onclick="toggleTheme()">☾</button>
       <button class="settings-btn" onclick="toggleSettings()" title="Customise break settings">⚙</button>
     </div>
   </header>
@@ -916,15 +1177,15 @@
     <div class="buoy-sep"></div>
     <div class="buoy-meta">
       <div class="buoy-age" id="buoy-age">Loading…</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase">~50km offshore · ~50m depth</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--avlabel);margin-top:4px;letter-spacing:1px;text-transform:uppercase">~50km offshore · ~50m depth</div>
     </div>
   </div>
 
-  <!-- Break config summary strip — subtle, de-emphasised -->
+  <!-- Break config summary strip -->
   <div class="config-strip" style="margin-top:12px">
     <div class="cfg-item">
       <span class="cfg-label">Break Config</span>
-      <span class="cfg-value" style="color:var(--muted);font-size:10px">tap ⚙ to edit</span>
+      <span class="cfg-value" style="color:var(--avlabel);font-size:10px">tap ⚙ to edit</span>
     </div>
     <div class="sep"></div>
     <div class="cfg-item">
@@ -961,7 +1222,7 @@
   </div>
 
   <!-- ═══════════════════════════════════════════
-       SYNOPTIC PRESSURE CHARTS — collapsed by default
+       SYNOPTIC PRESSURE CHARTS
        ═══════════════════════════════════════════ -->
   <details class="collapsible" id="syn-details">
     <summary>
@@ -972,16 +1233,33 @@
       <span class="collapsible-chevron">&#9660;</span>
     </summary>
     <div class="collapsible-body">
-      <!-- Reading guide -->
       <div class="reading-guide">
         <h3>Reading Synoptic Charts for Surf</h3>
         <div class="rg-grid">
-          <div class="rg-item"><div class="rg-icon">L</div><div><strong>Low Pressure</strong> — Clockwise wind (Sth Hem). Generates swell. Deeper = bigger.</div></div>
-          <div class="rg-item"><div class="rg-icon">H</div><div><strong>High Pressure</strong> — Anticlockwise. Light local winds = clean conditions.</div></div>
-          <div class="rg-item"><div class="rg-icon">=</div><div><strong>Isobar Spacing</strong> — Close lines = steep gradient = strong winds. #1 thing to read.</div></div>
-          <div class="rg-item"><div class="rg-icon">▲</div><div><strong>Cold Front</strong> — Wind shift NW→SW, rain, chop. Messy locally.</div></div>
-          <div class="rg-item"><div class="rg-icon">→</div><div><strong>Fetch</strong> — Longer sustained wind over ocean = longer-period, more powerful swell.</div></div>
-          <div class="rg-item"><div class="rg-icon">★</div><div><strong>Golden Rule</strong> — Swell from a departed low + offshore from an arriving high = clean waves.</div></div>
+          <div class="rg-item">
+            <div class="rg-icon-box">L</div>
+            <div class="rg-body"><strong>Low Pressure</strong>Clockwise wind (Sth Hem). Generates swell. Deeper = bigger.</div>
+          </div>
+          <div class="rg-item">
+            <div class="rg-icon-box">H</div>
+            <div class="rg-body"><strong>High Pressure</strong>Anticlockwise. Light local winds = clean conditions.</div>
+          </div>
+          <div class="rg-item">
+            <div class="rg-icon-box">=</div>
+            <div class="rg-body"><strong>Isobar Spacing</strong>Close lines = steep gradient = strong winds. #1 thing to read.</div>
+          </div>
+          <div class="rg-item">
+            <div class="rg-icon-box">▲</div>
+            <div class="rg-body"><strong>Cold Front</strong>Wind shift NW→SW, rain, chop. Messy locally.</div>
+          </div>
+          <div class="rg-item">
+            <div class="rg-icon-box">→</div>
+            <div class="rg-body"><strong>Fetch</strong>Longer sustained wind over ocean = longer-period, more powerful swell.</div>
+          </div>
+          <div class="rg-item">
+            <div class="rg-icon-box">★</div>
+            <div class="rg-body"><strong>Golden Rule</strong>Swell from a departed low + offshore from an arriving high = clean waves.</div>
+          </div>
         </div>
       </div>
 
@@ -991,7 +1269,7 @@
   </details>
 
   <!-- ═══════════════════════════════════════════
-       SCORING EXPLAINER — collapsed by default
+       SCORING EXPLAINER
        ═══════════════════════════════════════════ -->
   <details class="collapsible" id="explainer-details">
     <summary>
@@ -1030,16 +1308,16 @@
         <h3>Rating Thresholds</h3>
         <p>The total score maps to a rating label. Higher score = better conditions across all categories.</p>
         <div style="margin-top: 8px;">
-          <div class="rating-example"><span class="dot" style="background:#00e5ff"></span> <strong style="color:#00e5ff">FIRING</strong> — 85+ points. Everything aligned: right swell direction/size/period + light offshore.</div><br>
-          <div class="rating-example"><span class="dot" style="background:#39ff14"></span> <strong style="color:#39ff14">GOOD</strong> — 65–84 points. Most factors good, maybe slightly outside ideal on one.</div><br>
-          <div class="rating-example"><span class="dot" style="background:#ffd600"></span> <strong style="color:#ffd600">OK</strong> — 40–64 points. Surfable but compromised — short period, marginal size, or cross-shore wind.</div><br>
-          <div class="rating-example"><span class="dot" style="background:#ff1744"></span> <strong style="color:#ff1744">POOR</strong> — Below 40, or onshore wind exceeding 10 knots (automatic override).</div>
+          <div class="rating-example"><span class="dot" style="background:var(--avacc)"></span> <strong style="color:var(--avacc)">FIRING</strong> — 85+ points. Everything aligned: right swell direction/size/period + light offshore.</div><br>
+          <div class="rating-example"><span class="dot" style="background:var(--avgreen)"></span> <strong style="color:var(--avgreen)">GOOD</strong> — 65–84 points. Most factors good, maybe slightly outside ideal on one.</div><br>
+          <div class="rating-example"><span class="dot" style="background:var(--avamber)"></span> <strong style="color:var(--avamber)">OK</strong> — 40–64 points. Surfable but compromised — short period, marginal size, or cross-shore wind.</div><br>
+          <div class="rating-example"><span class="dot" style="background:var(--avred)"></span> <strong style="color:var(--avred)">POOR</strong> — Below 40, or onshore wind exceeding 10 knots (automatic override).</div>
         </div>
       </div>
 
       <div class="explainer-card">
         <h3>The Onshore Override Rule</h3>
-        <p>Regardless of score, if the wind is <strong style="color:var(--text)">onshore and exceeds 10 knots</strong>, the rating is forced to <strong style="color:#ff1744">POOR</strong>. Onshore wind blows into the face of the wave, creating choppy, disorganised conditions that ruin wave quality no matter how good the swell is. This is the single most important factor for wave quality at Midds.</p>
+        <p>Regardless of score, if the wind is <strong style="color:var(--avtext)">onshore and exceeds 10 knots</strong>, the rating is forced to <strong style="color:var(--avred)">POOR</strong>. Onshore wind blows into the face of the wave, creating choppy, disorganised conditions that ruin wave quality no matter how good the swell is. This is the single most important factor for wave quality at Midds.</p>
       </div>
 
       <div class="explainer-card">
@@ -1047,9 +1325,9 @@
         <p>The notes column in the forecast table shows the <em>reasons</em> behind each rating — specifically what's holding it back or making it good:</p>
         <div style="margin-top: 6px; font-size: 12px; line-height: 2;">
           <span class="reason-offshore">✓ offshore</span> — Everything checks out, wind is offshore or light. Go surf.<br>
-          <span class="reason-cell">swell not hitting break</span> — Swell direction is outside your exposure window. The swell exists but your break is sheltered from it.<br>
+          <span class="reason-cell">swell not hitting break</span> — Swell direction is outside your exposure window.<br>
           <span class="reason-cell">too small</span> — Swell height below your configured minimum.<br>
-          <span class="reason-cell">maxing out</span> — Swell height above your configured maximum. Break may be closing out.<br>
+          <span class="reason-cell">maxing out</span> — Swell height above your configured maximum.<br>
           <span class="reason-cell">short period</span> — Wind swell or short-interval chop, not clean groundswell.<br>
           <span class="reason-onshore">onshore wind</span> — Wind blowing from ocean onto land, messing up the wave face.<br>
           <span class="reason-cell">light onshore</span> — Onshore but below the threshold — might still be okay.
@@ -1059,9 +1337,9 @@
       <div class="explainer-card">
         <h3>Connecting Pressure Charts to Ratings</h3>
         <p>The synoptic charts above show you <em>why</em> the ratings look the way they do, and what's coming:</p>
-        <div style="margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.65;">
-          A day full of <strong style="color:#ff1744">POOR</strong> ratings? Look at the chart — there's probably a front sitting directly over Albany with onshore winds. But check the chart for the <em>next</em> day: if you see the low moving east and a high building behind it, tomorrow's table will likely show <strong style="color:#39ff14">GOOD</strong> or <strong style="color:#00e5ff">FIRING</strong> for the early morning hours.<br><br>
-          <strong style="color:var(--text)">The pattern to look for:</strong> departed low (swell source) + arriving high (light/offshore wind) = green and cyan in the ratings table. That's the magic combo — and you can see it forming on the pressure charts 24-48 hours before it shows up in the forecast numbers.
+        <div style="margin-top: 6px; font-size: 12px; color: var(--avmuted); line-height: 1.65;">
+          A day full of <strong style="color:var(--avred)">POOR</strong> ratings? Look at the chart — there's probably a front sitting directly over Albany with onshore winds. But check the chart for the <em>next</em> day: if you see the low moving east and a high building behind it, tomorrow's table will likely show <strong style="color:var(--avgreen)">GOOD</strong> or <strong style="color:var(--avacc)">FIRING</strong> for the early morning hours.<br><br>
+          <strong style="color:var(--avtext)">The pattern to look for:</strong> departed low (swell source) + arriving high (light/offshore wind) = green and cyan in the ratings table. That's the magic combo — and you can see it forming on the pressure charts 24-48 hours before it shows up in the forecast numbers.
         </div>
         <div class="formula-box">tight isobars + long fetch + sustained duration = big organised groundswell</div><br>
         <div class="formula-box">swell speed ≈ period × 5.6 km/h → 14s swell ≈ 78 km/h ≈ 1,870 km/day</div>
@@ -1070,22 +1348,22 @@
       <div class="explainer-card">
         <h3>Customising for Your Break</h3>
         <p>Every setting in the ⚙ panel directly feeds into the scoring algorithm. If the ratings don't match what you're seeing in the water, tweak the config:</p>
-        <div style="margin-top: 6px; font-size: 12px; color: var(--muted); line-height: 1.65;">
-          <strong style="color:var(--text)">Swell window</strong> — Widen it if your break picks up swell from more directions than expected. Narrow it if swells from certain angles don't actually reach you.<br>
-          <strong style="color:var(--text)">Ideal height</strong> — Raise the max if your break handles bigger swell. Lower the min if you're happy surfing small days.<br>
-          <strong style="color:var(--text)">Offshore wind</strong> — Adjust based on which wind direction actually cleans up the face at your break. This varies by beach orientation.<br>
-          <strong style="color:var(--text)">Light wind threshold</strong> — Lower it if you notice even moderate onshore is ruining things. Raise it if your break handles more wind.<br><br>
-          Settings persist in <code style="color:var(--firing)">localStorage</code> — they'll survive closing the browser.
+        <div style="margin-top: 6px; font-size: 12px; color: var(--avmuted); line-height: 1.65;">
+          <strong style="color:var(--avtext)">Swell window</strong> — Widen it if your break picks up swell from more directions than expected.<br>
+          <strong style="color:var(--avtext)">Ideal height</strong> — Raise the max if your break handles bigger swell.<br>
+          <strong style="color:var(--avtext)">Offshore wind</strong> — Adjust based on which wind direction actually cleans up the face at your break.<br>
+          <strong style="color:var(--avtext)">Light wind threshold</strong> — Lower it if you notice even moderate onshore is ruining things.<br><br>
+          Settings persist in <code style="color:var(--avacc)">localStorage</code> — they'll survive closing the browser.
         </div>
       </div>
     </div>
   </details>
 
   <footer>
-    Synoptic charts: <a href="https://eldersweather.com.au/synoptic" style="color:var(--accent)">Elders Weather</a> / WeatherZone — auto-updating daily &nbsp;|&nbsp;
-    Marine data: <a href="https://open-meteo.com" style="color:var(--accent)">Open-Meteo.com</a> — GFS Wave / MeteoFrance MFWAM &nbsp;|&nbsp;
+    Synoptic charts: <a href="https://eldersweather.com.au/synoptic">Elders Weather</a> / WeatherZone — auto-updating daily &nbsp;|&nbsp;
+    Marine data: <a href="https://open-meteo.com">Open-Meteo.com</a> — GFS Wave / MeteoFrance MFWAM &nbsp;|&nbsp;
     Tide data is indicative only — check BOM for navigation &nbsp;|&nbsp;
-    Built with the surf-forecast-dashboard skill
+    Built for Midds Reef, Albany WA
   </footer>
 </div>
 
@@ -1122,7 +1400,29 @@ function correctSwellHeight(forecastHs, swellDir, month) {
   return CORRECTION_TABLE?.[month]?.[dirBin]?.[htKey] ?? forecastHs;
 }
 
-function msToKnots(ms) { return Math.round(ms * 1.94384); }function mToFt(m) { return (m * 3.28084).toFixed(1); }
+function msToKnots(ms) { return Math.round(ms * 1.94384); }
+function mToFt(m) { return (m * 3.28084).toFixed(1); }
+
+function capitalize(s) {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+function getWetsuit(sst) {
+  if (sst == null) return '—';
+  if (sst <= 14) return '4/3 + hood';
+  if (sst <= 17) return '3/2 steamer';
+  if (sst <= 20) return '2mm shorty';
+  return 'boardshorts';
+}
+
+// CSS-variable colour by rating label — resolves with theme
+const RATING_COLOR = {
+  FIRING: 'var(--avacc)',
+  GOOD:   'var(--avgreen)',
+  OK:     'var(--avamber)',
+  POOR:   'var(--avred)',
+};
 
 function rateSurf(sh, sp, sd, ws, wd, config) {
   let score = 0;
@@ -1263,7 +1563,7 @@ function mergeData(marine, wx, tideMap) {
                marine.hourly.swell_wave_direction?.[i],
                new Date(t).getMonth() + 1
              ),
-    rawSwellH: marine.hourly.swell_wave_height?.[i],    
+    rawSwellH: marine.hourly.swell_wave_height?.[i],
     swellDir:marine.hourly.swell_wave_direction?.[i],
     swellPer:marine.hourly.swell_wave_period?.[i],
     windWH:  marine.hourly.wind_wave_height?.[i],
@@ -1346,18 +1646,16 @@ function renderHero(rows, wx, config) {
   const today = rows[0].time.substring(0, 10);
   const todayRows = rows.filter(r => r.time.startsWith(today));
 
-  // Find today's best rating and corresponding row (surf hours only)
   const order = { FIRING: 4, GOOD: 3, OK: 2, POOR: 1 };
   let bestRating = { label: 'POOR', color: '#ff1744', textColor: '#fff', reasons: [] };
   let bestRow = null;
 
-  // Collect all good windows for today (>= OK during surf hours)
   const goodWindows = [];
   todayRows.forEach(r => {
     const h = new Date(r.time).getHours();
     if (h < 5 || h > 19) return;
     const rating = rateSurf(r.swellH, r.swellPer, r.swellDir, r.windSpd, r.windDir, config);
-    if ((order[rating.label] || 0) >= 2) { // OK and above
+    if ((order[rating.label] || 0) >= 2) {
       goodWindows.push({ r, rating, h });
     }
     if ((order[rating.label] || 0) > (order[bestRating.label] || 0)) {
@@ -1366,10 +1664,8 @@ function renderHero(rows, wx, config) {
     }
   });
 
-  // Find contiguous best windows
   let windowStr = '—';
   if (goodWindows.length > 0) {
-    // Group contiguous hours
     const groups = [];
     let cur = null;
     goodWindows.forEach(({ r, rating, h }) => {
@@ -1380,7 +1676,6 @@ function renderHero(rows, wx, config) {
         cur.endH = h;
       }
     });
-    // Filter to best-quality groups
     const bestOrder = order[bestRating.label];
     const bestGroups = groups.filter(g => order[g.rating.label] >= bestOrder - 1);
     if (bestGroups.length > 0) {
@@ -1393,71 +1688,54 @@ function renderHero(rows, wx, config) {
     }
   }
 
-  // Now row
   const nowStr = new Date().toISOString().substring(0, 13);
   const nowRow = rows.find(r => r.time.startsWith(nowStr)) || rows[0];
   const nowKts = nowRow?.windSpd != null ? msToKnots(nowRow.windSpd) : '—';
-  const nowGst = nowRow?.windGst != null ? msToKnots(nowRow.windGst) : '—';
-  const nowRating = nowRow ? rateSurf(nowRow.swellH, nowRow.swellPer, nowRow.swellDir, nowRow.windSpd, nowRow.windDir, config) : null;
-
-  // Also update the now-panel-style elements referenced by original JS
-  if (nowRow) {
-    document.getElementById('now-swell') && (document.getElementById('now-swell').textContent =
-      nowRow.swellH != null
-        ? `${nowRow.swellH.toFixed(1)}m @ ${nowRow.swellPer?.toFixed(0) ?? '?'}s ${bearingToCompass(nowRow.swellDir)}`
-        : '—');
-    document.getElementById('now-wind') && (document.getElementById('now-wind').textContent =
-      `Wind: ${nowKts}kn ${bearingToCompass(nowRow.windDir)} (gusts ${nowGst}kn)`);
-  }
 
   const displayRow = bestRow || nowRow || rows[0];
   const maxSwellToday = Math.max(...todayRows.map(r => r.swellH ?? 0));
   const repPeriod = displayRow?.swellPer != null ? displayRow.swellPer.toFixed(0) + 's' : '—';
-  const repDir = bearingToArrow(displayRow?.swellDir) + ' ' + bearingToCompass(displayRow?.swellDir);
 
   const ratingClass = {
     FIRING: 'hero-firing', GOOD: 'hero-good', OK: 'hero-ok', POOR: 'hero-poor'
   }[bestRating.label] || 'hero-poor';
 
-  const sunTimes = getSunTimes(wx, today);
-  const sunStr = sunTimes ? `☀ ${sunTimes.rise} — ${sunTimes.set}` : '';
+  const ratingColor = RATING_COLOR[bestRating.label] || 'var(--avred)';
 
-  const nowSwellStr = nowRow?.swellH != null
-    ? `${nowRow.swellH.toFixed(1)}m @ ${nowRow.swellPer?.toFixed(0) ?? '?'}s ${bearingToCompass(nowRow.swellDir)}`
-    : '—';
-  const nowWindStr = `${nowKts}kn ${bearingToCompass(nowRow?.windDir)}${nowGst !== '—' ? ' g' + nowGst + 'kn' : ''}`;
+  const nowOffshore = nowRow?.windDir != null && inRange(nowRow.windDir, config.offshoreWind.from, config.offshoreWind.to);
+  const nowOnshore  = nowRow?.windDir != null && inRange(nowRow.windDir, config.onshoreWind.from, config.onshoreWind.to);
+  const windQuality = nowOffshore ? 'offshore' : (nowOnshore ? 'onshore' : 'cross-shore');
+  const windClass   = nowOffshore ? ' wind-good' : '';
+
+  const swellDirStr = bearingToCompass(displayRow?.swellDir);
+  const sstVal = displayRow?.sst ?? todayRows.find(r => r.sst != null)?.sst;
 
   const heroHTML = `
     <div class="hero-card ${ratingClass}">
-      <div class="hero-top">
-        <div class="hero-rating-block">
-          <div class="hero-label" style="color:${bestRating.color}">${bestRating.label}</div>
-          <div class="hero-sublabel">Today&rsquo;s peak rating</div>
-          <div class="hero-window">${windowStr}</div>
+      <div class="hero-left">
+        <div class="hero-pulse-eyebrow">
+          <div class="hero-pulse-dot"></div>
+          <div class="hero-eyebrow">Today at the reef — it's</div>
         </div>
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <div class="hs-label">Swell</div>
-            <div class="hs-val big">${maxSwellToday > 0 ? maxSwellToday.toFixed(1) : '—'}<span style="font-size:1.1rem;color:var(--muted);font-weight:400">m</span></div>
-          </div>
-          <div class="hero-divider"></div>
-          <div class="hero-stat">
-            <div class="hs-label">Period</div>
-            <div class="hs-val">${repPeriod}</div>
-          </div>
-          <div class="hero-divider"></div>
-          <div class="hero-stat">
-            <div class="hs-label">Dir</div>
-            <div class="hs-val">${repDir}</div>
-          </div>
-        </div>
+        <div class="hero-verdict" style="color:${ratingColor}">${capitalize(bestRating.label)}</div>
+        <div class="hero-desc">Best window today: <strong>${windowStr}</strong></div>
       </div>
-      <div class="hero-bottom">
-        <div>
-          <div class="hero-now-label">Right now</div>
-          <div class="hero-now-val">${nowSwellStr} &nbsp;·&nbsp; ${nowWindStr}${nowRating ? '&nbsp;&nbsp;<span style="color:' + nowRating.color + ';font-weight:700;font-family:\'Barlow Condensed\',sans-serif;font-size:0.95rem;letter-spacing:1px">' + nowRating.label + '</span>' : ''}</div>
+      <div class="hero-chips">
+        <div class="hero-chip">
+          <div class="hc-label">Swell</div>
+          <div class="hc-val">${maxSwellToday > 0 ? maxSwellToday.toFixed(1) : '—'}<span class="hc-unit">m</span></div>
+          <div class="hc-sub">${repPeriod} · ${swellDirStr}</div>
         </div>
-        ${sunStr ? `<div style="margin-left:auto;text-align:right"><div class="hero-now-label">Daylight</div><div class="hero-now-val" style="color:var(--muted)">${sunStr}</div></div>` : ''}
+        <div class="hero-chip">
+          <div class="hc-label">Wind</div>
+          <div class="hc-val${windClass}">${nowKts}<span class="hc-unit">kn</span></div>
+          <div class="hc-sub">${bearingToCompass(nowRow?.windDir)} · ${windQuality}</div>
+        </div>
+        <div class="hero-chip">
+          <div class="hc-label">Sea Temp</div>
+          <div class="hc-val">${sstVal != null ? sstVal.toFixed(1) : '—'}<span class="hc-unit">°</span></div>
+          <div class="hc-sub">${getWetsuit(sstVal)}</div>
+        </div>
       </div>
     </div>`;
 
@@ -1490,7 +1768,12 @@ function render(data, wx, tideMap, config) {
   // Hero card
   renderHero(rows, wx, config);
 
-  // Build daily strip + day sections
+  // Max swell across all days for proportional bars
+  const maxSwellAllDays = Math.max(
+    ...dayKeys.map(dk => Math.max(...days[dk].map(r => r.swellH ?? 0))),
+    0.1
+  );
+
   let stripHTML = '';
   let sectionsHTML = '';
 
@@ -1502,21 +1785,24 @@ function render(data, wx, tideMap, config) {
 
     // ── Daily card ──
     const maxSwell = Math.max(...dayRows.map(r => r.swellH ?? 0)).toFixed(1);
-    const domWindKts = repRow?.windSpd != null ? msToKnots(repRow.windSpd) : '—';
     const cardDayName = di === 0 ? 'Today' : new Date(dateStr + 'T12:00').toLocaleDateString('en-AU', { weekday: 'short' });
+    const barPct = Math.max(4, Math.round((parseFloat(maxSwell) / maxSwellAllDays) * 100));
+    const ratingColor = RATING_COLOR[best.label] || 'var(--avred)';
+
     stripHTML += `
       <div class="day-card${di === 0 ? ' active' : ''}" onclick="scrollToDay('day-${dateStr}')" id="card-${dateStr}">
-        <div class="dc-band" style="background:${best.color}"></div>
         <div class="dc-inner">
           <div class="dc-name">${cardDayName}</div>
           <div class="dc-date">${new Date(dateStr + 'T12:00').toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</div>
-          <div class="dc-rating" style="color:${best.color}">${best.label}</div>
-          <div class="dc-swell">${maxSwell}m ${bearingToArrow(repRow?.swellDir)} ${bearingToCompass(repRow?.swellDir)}</div>
-          <div class="dc-wind">${domWindKts}kn ${bearingToCompass(repRow?.windDir)}</div>
+          <div class="dc-bar-wrap">
+            <div class="dc-bar-fill" style="height:${barPct}%;background:${ratingColor}"></div>
+          </div>
+          <div class="dc-swell">${maxSwell}m</div>
+          <div class="dc-rating" style="color:${ratingColor}">${best.label}</div>
         </div>
       </div>`;
 
-    // ── Best slots summary (top 3 rated slots in surf hours) ──
+    // ── Best slots summary ──
     const order = { FIRING: 4, GOOD: 3, OK: 2, POOR: 1 };
     const surfSlots = dayRows
       .filter((_, i) => i % 3 === 0)
@@ -1527,16 +1813,17 @@ function render(data, wx, tideMap, config) {
       }))
       .sort((a, b) => (order[b.rating.label] || 0) - (order[a.rating.label] || 0))
       .slice(0, 3)
-      .sort((a, b) => new Date(a.r.time) - new Date(b.r.time)); // re-sort by time
+      .sort((a, b) => new Date(a.r.time) - new Date(b.r.time));
 
     let bestSlotsHTML = '';
     surfSlots.forEach(({ r, rating }) => {
       const kts = r.windSpd != null ? msToKnots(r.windSpd) : '—';
       const pillClass = 'pill-' + rating.label.toLowerCase();
+      const slotColor = RATING_COLOR[rating.label] || 'var(--avred)';
       bestSlotsHTML += `
         <div class="slot-pill ${pillClass}">
           <div class="sp-time">${formatTime(r.time)}</div>
-          <div class="sp-rating" style="color:${rating.color}">${rating.label}</div>
+          <div class="sp-rating" style="color:${slotColor}">${rating.label}</div>
           <div class="sp-swell">${r.swellH != null ? r.swellH.toFixed(1) + 'm' : '—'} · ${r.swellPer != null ? r.swellPer.toFixed(0) + 's' : '—'}</div>
           <div class="sp-wind">${kts}kn ${bearingToCompass(r.windDir)}</div>
         </div>`;
@@ -1545,15 +1832,14 @@ function render(data, wx, tideMap, config) {
     // ── Full table rows ──
     const sunStr = sunTimes ? `☀ ${sunTimes.rise} — ${sunTimes.set}` : '';
     let rowsHTML = '';
-    // Show every 3 hours to keep table manageable
     dayRows.filter((_, i) => i % 3 === 0).forEach((r, fi) => {
       const hour = new Date(r.time).getHours();
       const rating = rateSurf(r.swellH, r.swellPer, r.swellDir, r.windSpd, r.windDir, config);
       const isDawn = sunTimes && (hour >= sunTimes.riseHour - 1) && (hour <= sunTimes.riseHour + 2);
       const kts = r.windSpd != null ? msToKnots(r.windSpd) : '—';
       const gst = r.windGst != null ? msToKnots(r.windGst) : '';
+      const pillColor = RATING_COLOR[rating.label] || 'var(--avred)';
 
-      // Colour-coded notes: green for offshore mentions, red for onshore
       const noteSpans = rating.reasons.length
         ? rating.reasons.map(reason => {
             if (reason.includes('offshore')) return `<span class="reason-offshore">${reason}</span>`;
@@ -1562,7 +1848,6 @@ function render(data, wx, tideMap, config) {
           }).join(', ')
         : `<span class="reason-offshore">✓ offshore</span>`;
 
-      // Tide cell — fi*3 maps back to original dayRows index for neighbour lookup
       const tideIdx = fi * 3;
       const tideCell = r.tideH != null
         ? `<td class="tide-cell">
@@ -1573,7 +1858,7 @@ function render(data, wx, tideMap, config) {
       rowsHTML += `
         <tr class="${isDawn ? 'dawn-patrol' : ''}">
           <td class="time-cell">${formatTime(r.time)}${isDawn ? ' 🌅' : ''}</td>
-          <td><span class="rating-pill" style="background:${rating.color};color:${rating.textColor}">${rating.label}</span></td>
+          <td><span class="rating-pill" style="background:${pillColor};color:var(--avbg)">${rating.label}</span></td>
           <td class="swell-height">${r.swellH != null ? r.swellH.toFixed(1) + 'm' : '—'}</td>
           <td class="period">${r.swellPer != null ? r.swellPer.toFixed(0) + 's' : '—'}</td>
           <td><span class="dir-arrow">${bearingToArrow(r.swellDir)}</span> <span class="muted-cell">${bearingToCompass(r.swellDir)}</span></td>
@@ -1586,8 +1871,8 @@ function render(data, wx, tideMap, config) {
     });
 
     const sectionId = `day-${dateStr}`;
-    const toggleId = `toggle-${dateStr}`;
-    const tableId = `table-${dateStr}`;
+    const toggleId  = `toggle-${dateStr}`;
+    const tableId   = `table-${dateStr}`;
 
     const isToday = di === 0;
     const dayLabel = isToday
@@ -1599,8 +1884,8 @@ function render(data, wx, tideMap, config) {
       <div class="day-section" id="${sectionId}">
         <div class="day-header">
           <span class="day-header-name">${dayLabel}</span>
-          <span style="font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:400;color:var(--muted);text-transform:uppercase;letter-spacing:1px">${daySubLabel}</span>
-          <span class="day-header-rating" style="color:${best.color}">${best.label}</span>
+          <span class="day-header-date">${daySubLabel}</span>
+          <span class="day-header-rating" style="background:${ratingColor};color:var(--avbg)">${best.label}</span>
           ${sunStr ? `<span class="sun-times">${sunStr}</span>` : ''}
         </div>
         <div class="best-slots">${bestSlotsHTML}</div>
@@ -1632,7 +1917,7 @@ function render(data, wx, tideMap, config) {
   });
 
   document.getElementById('app').innerHTML = `
-    <div class="section-eyebrow" style="margin-top:28px;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">7-Day Forecast</div>
+    <div class="section-eyebrow">7-Day Forecast</div>
     <div class="daily-strip">${stripHTML}</div>
     <div class="forecast-days">${sectionsHTML}</div>
   `;
@@ -1651,14 +1936,8 @@ function scrollToDay(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ── Live Buoy — WA DoT Albany Waverider (WMO 56011) ──────────────────────
-// Data via AODN GeoServer WFS — Albany buoy is ~50km offshore in ~50m depth.
-// Updates every 3 hours. Falls back gracefully if CORS blocks the request.
-// Swap BUOY_URL for Sofar Ocean API endpoint once access is arranged.
+// ── Live Buoy — Albany Waverider (WMO 56011) via Netlify edge proxy ────────
 
-// Hits our Netlify edge function proxy at /api/buoy
-// The edge function fetches from AODN server-side (no CORS issue)
-// and returns clean normalised JSON.
 const BUOY_WFS_URL = '/api/buoy';
 
 async function fetchBuoyData() {
@@ -1704,7 +1983,7 @@ async function fetchBuoyData() {
   }
 }
 
-
+// ── Settings ───────────────────────────────────────────────────────────────
 
 const DEFAULT_CONFIG = {
   swellWindow:        { from: 160, to: 260 },
@@ -1715,7 +1994,6 @@ const DEFAULT_CONFIG = {
   lightWindThreshold: 10,
 };
 
-// Cache forecast data so re-render doesn't need a new fetch
 let _cachedMarine = null, _cachedWx = null, _cachedTideMap = null;
 
 function toggleSettings() {
@@ -1830,7 +2108,33 @@ function loadSavedSettings() {
   } catch(e) {}
 }
 
-// ── Synoptic Chart Tabs ──────────────────────────────────────────────────
+// ── Theme toggle ───────────────────────────────────────────────────────────
+
+function toggleTheme() {
+  const next = document.body.dataset.avTheme === 'dark' ? 'light' : 'dark';
+  document.body.dataset.avTheme = next;
+  try { localStorage.setItem('avTheme', next); } catch(e) {}
+  document.getElementById('theme-btn').textContent = next === 'dark' ? '☾' : '☀';
+}
+
+// ── Header eyebrow (date / time / updated) ─────────────────────────────────
+
+function initHeaderEyebrow() {
+  const el = document.getElementById('header-eyebrow');
+  if (!el) return;
+  const now = new Date();
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const day  = dayNames[now.getDay()];
+  const date = now.getDate();
+  const mon  = monthNames[now.getMonth()];
+  const h12  = now.getHours() % 12 || 12;
+  const min  = now.getMinutes().toString().padStart(2, '0');
+  const ampm = now.getHours() < 12 ? 'am' : 'pm';
+  el.textContent = `${day} ${date} ${mon} · ${h12}:${min} ${ampm}`;
+}
+
+// ── Synoptic Chart Tabs ────────────────────────────────────────────────────
 
 const CHART_DAYS = [
   { id: 'd0', label: 'Latest',  url: 'https://data.weatherzone.com.au/data/hourly/images/synoptic/wz_syn_aus_d0_640x480.jpg' },
@@ -1906,8 +2210,17 @@ function getChartAnalysis(idx) {
 
 (async () => {
   loadSavedSettings();
+
+  // Restore saved theme
+  try {
+    const savedTheme = localStorage.getItem('avTheme') || 'dark';
+    document.body.dataset.avTheme = savedTheme;
+    document.getElementById('theme-btn').textContent = savedTheme === 'dark' ? '☾' : '☀';
+  } catch(e) {}
+
+  initHeaderEyebrow();
   buildChartTabs();
-  fetchBuoyData(); // fire and forget — panel degrades gracefully on failure
+  fetchBuoyData(); // fire and forget
 
   try {
     const ct = await fetch('correction_table.json').then(r => r.json());
@@ -1925,9 +2238,9 @@ function getChartAnalysis(idx) {
     render(marine, wx, tideMap, BREAK_CONFIG);
   } catch (err) {
     document.getElementById('app').innerHTML =
-      `<div class="loading">⚠ Failed to load forecast data.<br><small style="color:#ff1744">${err.message}</small><br><br>Check your internet connection and try refreshing.</div>`;
+      `<div class="loading">⚠ Failed to load forecast data.<br><small style="color:var(--avred)">${err.message}</small><br><br>Check your internet connection and try refreshing.</div>`;
     document.getElementById('hero-panel').innerHTML =
-      `<div class="hero-card hero-poor"><div class="loading" style="padding:20px 0;color:var(--poor)">Failed to load forecast</div></div>`;
+      `<div class="hero-card hero-poor"><div class="loading" style="padding:20px 0;color:var(--avred)">Failed to load forecast</div></div>`;
     console.error(err);
   }
 })();
