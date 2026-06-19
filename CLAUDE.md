@@ -4,12 +4,12 @@
 
 Single-page hyperlocal surf forecast for **Middleton Beach Reef (Midds)**, Albany WA (Kinjarling).
 A self-contained HTML file with client-side API calls — no build step, no framework, no bundler.
-Deployed on Netlify with an edge function proxying live buoy data from AODN.
+Deployed on Netlify with an edge function proxying live buoy data from UWA S3.
 
 The dashboard combines:
 - **Synoptic pressure charts** from WeatherZone (auto-updating `<img>` tags)
 - **7-day marine forecast** from Open-Meteo (swell, wind, tide, SST)
-- **Live buoy observations** from the Albany Waverider (WMO 56011) via Netlify edge proxy
+- **Live buoy observations** from the Midds Sofar Spotter (SPOT-31708C) via Netlify edge proxy
 - **Configurable break parameters** with localStorage persistence
 - **Scoring explainer** teaching users how ratings are calculated
 
@@ -19,7 +19,7 @@ The dashboard combines:
 - Fonts: JetBrains Mono + Barlow Condensed (Google Fonts CDN)
 - Open-Meteo Marine API + Weather API (free, no key)
 - WeatherZone synoptic chart images (loaded as `<img>` tags, auto-update daily)
-- Netlify Edge Functions (Deno-based) for AODN buoy proxy
+- Netlify Edge Functions (Deno-based) for S3 buoy proxy (AWS SigV4 via aws4fetch)
 - `localStorage` for user settings persistence
 
 ## File structure
@@ -30,7 +30,7 @@ midds-reef/
 ├── netlify.toml                  ← Netlify config + edge function routing
 ├── netlify/
 │   └── edge-functions/
-│       └── buoy-proxy.js        ← AODN buoy proxy (avoids CORS)
+│       └── buoy-proxy.js        ← UWA S3 Sofar Spotter proxy (SigV4 via aws4fetch)
 ├── CLAUDE.md                     ← this file
 └── README.md
 ```
@@ -108,13 +108,18 @@ This was validated by Jack's observations driving past the beach.
 - Images update daily on WeatherZone's end
 - Fallback: if images fail to load, a link to Elders Weather is shown
 
-### Buoy data (AODN via Netlify edge function)
-- Edge function at `/api/buoy` proxies AODN GeoServer WFS
-- Returns normalised JSON: `{ time, hs, tp, dp, sst, lat, lon, depth, stationName }`
-- Station: Albany Waverider, WMO 56011, ~50km offshore, ~50m depth
-- Updates every ~3 hours
+### Buoy data (UWA S3 Sofar Spotter via Netlify edge function)
+- Edge function at `/api/buoy` fetches the daily CSV from S3 and returns the latest row
+- S3 bucket: `uwawavebuoys`, prefix `auswaves/wawaves/MiddletonBeach/text_archive/YYYY/MM/`
+- Filename pattern: `MiddletonBeach_YYYYMMDD.csv` (UTC date)
+- Buoy: SPOT-31708C (Sofar Spotter), ~35.017°S 117.930°E, inshore near Midds
+- Returns normalised JSON: `{ time, hs, tp, dp, sst, lat, lon, depth, stationName, buoyId }`
+- Data cadence: 30-minute observations
+- **Requires Netlify env vars**: `AWS_BUOY_KEY_ID` and `AWS_BUOY_SECRET`
 - Dashboard degrades gracefully if unavailable (panel shows "Unavailable")
-- Cache-Control: 10 minutes (buoy only updates every 3h anyway)
+- Cache-Control: 30 minutes (matches data cadence)
+
+**Previous source:** AODN GeoServer WFS `imos:wave_buoy_realtime_nonqc` — removed by AODN, no longer available.
 
 ## Known issues and gotchas
 

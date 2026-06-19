@@ -251,46 +251,46 @@
     padding: 20px 24px;
     margin: 16px 0 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
   }
   .buoy-panel.buoy-error { opacity: 0.5; border-left-color: var(--avlabel); }
-  .buoy-primary { display: flex; flex-direction: column; gap: 2px; }
+  .buoy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
   .buoy-title {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--avlabel);
-    margin-bottom: 8px;
     white-space: nowrap;
   }
   .buoy-title span { color: var(--avacc); }
-  .buoy-hs-big {
-    font-family: 'Newsreader', serif;
-    font-size: 2.8rem;
-    font-weight: 500;
-    color: var(--avacc);
-    line-height: 1;
+  .buoy-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: right;
   }
-  .buoy-hs-unit { font-size: 1.1rem; color: var(--avmuted); font-weight: 400; }
-  .buoy-hs-label {
+  .buoy-age {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
     color: var(--avlabel);
-    margin-top: 4px;
+    white-space: nowrap;
   }
-  .buoy-sep { display: none; }
-  .buoy-secondaries {
+  /* unified stat row */
+  .buoy-stats {
     display: flex;
-    gap: 24px;
+    gap: 32px;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: flex-end;
   }
-  .buoy-stat { display: flex; flex-direction: column; gap: 4px; }
+  .buoy-stat { display: flex; flex-direction: column; gap: 5px; }
   .buoy-stat .bs-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -300,29 +300,23 @@
   }
   .buoy-stat .bs-val {
     font-family: 'Newsreader', serif;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 500;
+    line-height: 1;
     color: var(--avtext);
   }
-  .buoy-meta {
-    margin-left: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: right;
-  }
-  .buoy-age {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--avlabel);
-    white-space: nowrap;
-  }
+  .buoy-stat.buoy-hs .bs-val { color: var(--avacc); }
+  /* legacy compat — keep ids working */
+  .buoy-hs-big { display: contents; }
+  .buoy-hs-label { display: none; }
+  .buoy-primary { display: contents; }
+  .buoy-secondaries { display: contents; }
+  .buoy-sep { display: none; }
   .buoy-cors-note {
     font-size: 11px;
     color: var(--avmuted);
     font-style: italic;
-    flex-basis: 100%;
-    margin-top: 4px;
+    margin-top: 2px;
   }
 
   /* ── CONFIG STRIP ── */
@@ -981,10 +975,9 @@
     .hero-chips { gap: 8px; }
     .hero-chip { padding: 14px 16px; min-width: 88px; }
 
-    .buoy-panel { gap: 16px; }
-    .buoy-hs-big { font-size: 2.2rem; }
-    .buoy-secondaries { gap: 16px; }
-    .buoy-meta { margin-left: 0; text-align: left; }
+    .buoy-panel { gap: 12px; }
+    .buoy-stats { gap: 20px; }
+    .buoy-stat .bs-val { font-size: 24px; }
 
     .day-card { flex: 0 0 72px; }
 
@@ -1154,13 +1147,18 @@
 
   <!-- ── LIVE BUOY PANEL ── -->
   <div class="buoy-panel" id="buoy-panel">
-    <div class="buoy-primary">
-      <div class="buoy-title">Live buoy &nbsp;·&nbsp; <span>Albany Waverider</span> &nbsp;·&nbsp; WMO 56011</div>
-      <div class="buoy-hs-big" id="buoy-hs">—</div>
-      <div class="buoy-hs-label">Sig. Wave Height</div>
+    <div class="buoy-header">
+      <div class="buoy-title">Live buoy &nbsp;·&nbsp; <span>Midds Sofar</span> &nbsp;·&nbsp; SPOT-31708C</div>
+      <div class="buoy-meta">
+        <div class="buoy-age" id="buoy-age">Loading…</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--avlabel);letter-spacing:1px;text-transform:uppercase">Inshore · ~35.02°S 117.93°E</div>
+      </div>
     </div>
-    <div class="buoy-sep"></div>
-    <div class="buoy-secondaries">
+    <div class="buoy-stats">
+      <div class="buoy-stat buoy-hs">
+        <span class="bs-label">Sig. Wave Height</span>
+        <span class="bs-val" id="buoy-hs">—</span>
+      </div>
       <div class="buoy-stat">
         <span class="bs-label">Peak Period</span>
         <span class="bs-val" id="buoy-tp">—</span>
@@ -1173,11 +1171,6 @@
         <span class="bs-label">Sea Temp</span>
         <span class="bs-val" id="buoy-sst">—</span>
       </div>
-    </div>
-    <div class="buoy-sep"></div>
-    <div class="buoy-meta">
-      <div class="buoy-age" id="buoy-age">Loading…</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--avlabel);margin-top:4px;letter-spacing:1px;text-transform:uppercase">~50km offshore · ~50m depth</div>
     </div>
   </div>
 
@@ -1969,15 +1962,16 @@ async function fetchBuoyData() {
         `Obs. ${obs.toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit',hour12:true})} (${ageStr})`;
     }
 
+    const buoyLabel = d.buoyId ? d.buoyId : 'Sofar Spotter';
     document.querySelector('.buoy-title').innerHTML =
-      'Live buoy &nbsp;·&nbsp; <span>Albany Waverider</span> &nbsp;·&nbsp; WMO 56011';
+      `Live buoy &nbsp;·&nbsp; <span>Midds Sofar</span> &nbsp;·&nbsp; ${buoyLabel}`;
 
   } catch (err) {
     panel.classList.add('buoy-error');
     document.getElementById('buoy-age').textContent = 'Unavailable';
     const note = document.createElement('div');
     note.className = 'buoy-cors-note';
-    note.textContent = `⚠ Live buoy data unavailable (${err.message}). Will resolve once edge function is deployed to Netlify.`;
+    note.textContent = `⚠ Live buoy data unavailable (${err.message}).`;
     panel.appendChild(note);
     console.warn('Buoy fetch failed:', err.message);
   }
