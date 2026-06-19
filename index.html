@@ -380,8 +380,9 @@
   }
   .compass-dir-val {
     font-family: 'Newsreader', serif; font-weight: 500; font-size: 25px;
+    white-space: nowrap; text-align: center;
   }
-  .compass-dir-sub { font-size: 11px; color: var(--avmuted); margin-top: 4px; }
+  .compass-dir-sub { font-size: 11px; color: var(--avmuted); margin-top: 4px; text-align: center; }
   /* sea temp + wetsuit */
   .cond-seatemp { flex: 1; min-width: 160px; }
   .cond-temp-big {
@@ -404,8 +405,18 @@
   }
   /* mobile */
   @media (max-width: 640px) {
-    .cond-swell, .cond-tide { min-width: 100%; }
-    .cond-compass, .cond-seatemp, .cond-buoy-wrap { min-width: calc(50% - 7px); }
+    /* swell chart and tide go full width */
+    .cond-swell, .cond-tide, .cond-buoy-wrap { min-width: 100%; }
+    /* compass + sea temp sit side-by-side */
+    .cond-compass, .cond-seatemp { flex: 1; min-width: calc(50% - 7px); }
+    /* shrink compass circle so it fits the narrower card */
+    .compass-circle { width: 96px; height: 96px; }
+    .compass-needle-inner { height: 66px; }
+    .compass-needle-stem { height: 32px; }
+    /* scale down temp number so it doesn't overflow */
+    .cond-temp-big { font-size: 38px; }
+    /* wrap swell chart header row so caption doesn't overflow */
+    .cond-swell-header { flex-wrap: wrap; gap: 2px; }
   }
 
   /* ── CONFIG STRIP ── */
@@ -1866,7 +1877,7 @@ function buildSwellSVG(hourlyRows) {
   const caption = hsVals[0] >= hsVals[hsVals.length - 1] ? 'peaks at dawn, eases p.m.' : 'building through the day';
 
   return `
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+    <div class="cond-swell-header" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <div class="cond-label">Swell height — today</div>
       <div style="font-size:12px;color:var(--avmuted)">${caption}</div>
     </div>
