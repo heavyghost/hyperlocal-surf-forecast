@@ -319,6 +319,95 @@
     margin-top: 2px;
   }
 
+  /* ── CONDITIONS ROW ── */
+  .cond-row {
+    display: flex;
+    gap: 14px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .cond-card {
+    background: var(--avcard);
+    border: 1px solid var(--avborder);
+    border-radius: 16px;
+    padding: 20px 22px;
+  }
+  .cond-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--avlabel);
+  }
+  /* swell chart */
+  .cond-swell { flex: 1.6; min-width: 300px; }
+  /* compass */
+  .cond-compass {
+    flex: 1; min-width: 160px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .compass-circle {
+    position: relative; width: 122px; height: 122px;
+    border-radius: 50%; border: 1px solid var(--avborder);
+    margin: 14px 0 12px; background: var(--avchip);
+  }
+  .compass-pt {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--avmuted);
+  }
+  .compass-needle {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compass-needle-inner {
+    position: relative; width: 4px; height: 84px;
+    transform-origin: center;
+  }
+  .compass-needle-head {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 7px solid transparent; border-right: 7px solid transparent;
+    border-bottom: 13px solid var(--avacc);
+  }
+  .compass-needle-stem {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 42px; background: var(--avacc); border-radius: 2px;
+  }
+  .compass-hub {
+    position: absolute; top: 50%; left: 50%;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--avtext); transform: translate(-50%, -50%);
+  }
+  .compass-dir-val {
+    font-family: 'Newsreader', serif; font-weight: 500; font-size: 25px;
+  }
+  .compass-dir-sub { font-size: 11px; color: var(--avmuted); margin-top: 4px; }
+  /* sea temp + wetsuit */
+  .cond-seatemp { flex: 1; min-width: 160px; }
+  .cond-temp-big {
+    font-family: 'Newsreader', serif; font-weight: 500;
+    font-size: 50px; line-height: 1; margin-top: 4px;
+  }
+  .cond-temp-unit { font-size: 18px; color: var(--avmuted); }
+  .cond-divider { border-top: 1px dashed var(--avborder2); margin: 16px 0 12px; }
+  .cond-wetsuit-pill {
+    display: inline-flex; align-items: center;
+    background: var(--avacc); color: var(--avbg);
+    border-radius: 999px; padding: 7px 15px;
+    font-family: 'Newsreader', serif; font-weight: 600; font-size: 17px; line-height: 1;
+  }
+  /* tide + buoy row */
+  .tide-buoy-row { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .cond-tide { flex: 1.6; min-width: 300px; }
+  .cond-buoy-wrap {
+    flex: 1; min-width: 260px;
+  }
+  /* mobile */
+  @media (max-width: 640px) {
+    .cond-swell, .cond-tide { min-width: 100%; }
+    .cond-compass, .cond-seatemp, .cond-buoy-wrap { min-width: calc(50% - 7px); }
+  }
+
   /* ── CONFIG STRIP ── */
   .config-strip {
     background: transparent;
@@ -1145,7 +1234,18 @@
     </div>
   </div>
 
-  <!-- ── LIVE BUOY PANEL ── -->
+  <!-- ── CONDITIONS ROW: swell chart · compass · sea temp ── -->
+  <div class="cond-row" id="conditions-row"></div>
+
+  <!-- ── TIDE + BUOY ROW ── -->
+  <div class="tide-buoy-row">
+    <div class="cond-card cond-tide" id="tide-card">
+      <div class="cond-label">Tide</div>
+      <div style="height:110px;display:flex;align-items:center;justify-content:center">
+        <div style="font-size:12px;color:var(--avmuted)">Loading tide…</div>
+      </div>
+    </div>
+    <div class="cond-buoy-wrap">
   <div class="buoy-panel" id="buoy-panel">
     <div class="buoy-header">
       <div class="buoy-title">Live buoy &nbsp;·&nbsp; <span>Midds Sofar</span> &nbsp;·&nbsp; SPOT-31708C</div>
@@ -1172,7 +1272,9 @@
         <span class="bs-val" id="buoy-sst">—</span>
       </div>
     </div>
-  </div>
+  </div><!-- end buoy-panel -->
+    </div><!-- end cond-buoy-wrap -->
+  </div><!-- end tide-buoy-row -->
 
   <!-- Break config summary strip -->
   <div class="config-strip" style="margin-top:12px">
@@ -1735,6 +1837,168 @@ function renderHero(rows, wx, config) {
   document.getElementById('hero-panel').innerHTML = heroHTML;
 }
 
+// ── Conditions Row ─────────────────────────────────────────────────────────
+
+function getWetsuitNote(sst) {
+  if (sst == null) return '';
+  if (sst <= 14)  return '+ hood · gloves · booties';
+  if (sst <= 17)  return '+ booties at dawn · gloves optional';
+  if (sst <= 20)  return 'gloves optional';
+  return 'apply sunscreen';
+}
+
+function buildSwellSVG(hourlyRows) {
+  const W = 340, H = 110;
+  const hsVals = hourlyRows.map(r => r.swellH ?? 0);
+  if (hsVals.every(v => v === 0)) return '<div style="height:110px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--avmuted)">No swell data</div>';
+
+  const maxHs = Math.max(...hsVals, 0.1);
+  const n = hsVals.length;
+  const pts = hsVals.map((h, i) => {
+    const x = n === 1 ? W / 2 : (i / (n - 1)) * W;
+    const y = H - 8 - (h / maxHs) * (H - 20);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  const peakIdx = hsVals.indexOf(Math.max(...hsVals));
+  const peakX = n === 1 ? W / 2 : (peakIdx / (n - 1)) * W;
+  const peakY  = H - 8 - (hsVals[peakIdx] / maxHs) * (H - 20);
+  const caption = hsVals[0] >= hsVals[hsVals.length - 1] ? 'peaks at dawn, eases p.m.' : 'building through the day';
+
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+      <div class="cond-label">Swell height — today</div>
+      <div style="font-size:12px;color:var(--avmuted)">${caption}</div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block">
+      <defs>
+        <linearGradient id="swGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--avacc)" stop-opacity="0.22"/>
+          <stop offset="100%" stop-color="var(--avacc)" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <polygon points="${pts} ${W},${H} 0,${H}" fill="url(#swGrad)"/>
+      <polyline points="${pts}" fill="none" stroke="var(--avacc)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${peakX.toFixed(1)}" cy="${peakY.toFixed(1)}" r="4.5" fill="var(--avacc)"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--avlabel);margin-top:4px">
+      <span>6a</span><span>9a</span><span>12p</span><span>3p</span><span>6p</span>
+    </div>`;
+}
+
+function buildTideSVG(tideMap, today) {
+  const W = 340, H = 100;
+  // collect today's hourly tide values
+  const entries = [];
+  for (let h = 0; h < 24; h++) {
+    const key = `${today}T${String(h).padStart(2,'0')}:00`;
+    if (tideMap[key] != null) entries.push({ h, v: tideMap[key] });
+  }
+  if (entries.length < 2) return null;
+
+  const vals = entries.map(e => e.v);
+  const minV = Math.min(...vals), maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+
+  const pts = entries.map(e => {
+    const x = (e.h / 23) * W;
+    const y = H - 8 - ((e.v - minV) / range) * (H - 20);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  // find high and low
+  const highE = entries.reduce((a, b) => b.v > a.v ? b : a);
+  const lowE  = entries.reduce((a, b) => b.v < a.v ? b : a);
+  const nowH  = new Date().getHours();
+  const nowE  = entries.reduce((a, b) => Math.abs(b.h - nowH) < Math.abs(a.h - nowH) ? b : a);
+  const nowX  = (nowE.h / 23) * W;
+  const nowY  = H - 8 - ((nowE.v - minV) / range) * (H - 20);
+  const nextE = entries.find(e => e.h > nowH);
+  const trend = nextE ? (nextE.v > nowE.v ? '↑' : '↓') : '';
+
+  return { pts, highE, lowE, nowE, nowX, nowY, trend, minV, maxV, range, W, H };
+}
+
+function renderConditionsRow(rows, tideMap, config) {
+  const today = rows[0].time.substring(0, 10);
+  const todayRows = rows.filter(r => r.time.startsWith(today));
+
+  // Hourly rows 6am–6pm for chart (sample every 3 hours to match Open-Meteo cadence)
+  const hours = [6, 9, 12, 15, 18];
+  const hourlyRows = hours.map(h => {
+    const t = `${today}T${String(h).padStart(2,'0')}`;
+    return todayRows.find(r => r.time.startsWith(t)) || null;
+  }).filter(Boolean);
+
+  // Representative swell direction & SST from best/earliest valid row
+  const repRow = todayRows.find(r => r.swellDir != null) || todayRows[0];
+  const swellDir  = repRow?.swellDir ?? 0;
+  const swellPer  = repRow?.swellPer;
+  const sstVal    = todayRows.find(r => r.sst != null)?.sst ?? null;
+  const dirLabel  = `${bearingToCompass(swellDir)} · ${Math.round(swellDir)}°`;
+  const perLabel  = swellPer != null ? `${swellPer.toFixed(0)}s ${swellPer >= 10 ? 'groundswell' : 'wind swell'}` : 'swell data loading';
+  const needleRot = swellDir - 180; // arrowhead points in travel direction
+
+  const swellHTML = buildSwellSVG(hourlyRows);
+
+  document.getElementById('conditions-row').innerHTML = `
+    <div class="cond-card cond-swell">${swellHTML}</div>
+
+    <div class="cond-card cond-compass">
+      <div class="cond-label" style="align-self:flex-start">Swell direction</div>
+      <div class="compass-circle">
+        <div class="compass-pt" style="top:6px;left:50%;transform:translateX(-50%)">N</div>
+        <div class="compass-pt" style="bottom:6px;left:50%;transform:translateX(-50%)">S</div>
+        <div class="compass-pt" style="left:7px;top:50%;transform:translateY(-50%)">W</div>
+        <div class="compass-pt" style="right:7px;top:50%;transform:translateY(-50%)">E</div>
+        <div class="compass-needle">
+          <div class="compass-needle-inner" style="transform:rotate(${needleRot}deg)">
+            <div class="compass-needle-head"></div>
+            <div class="compass-needle-stem"></div>
+          </div>
+        </div>
+        <div class="compass-hub"></div>
+      </div>
+      <div class="compass-dir-val">${dirLabel}</div>
+      <div class="compass-dir-sub">${perLabel}</div>
+    </div>
+
+    <div class="cond-card cond-seatemp">
+      <div class="cond-label">Sea temp</div>
+      <div class="cond-temp-big">${sstVal != null ? sstVal.toFixed(1) : '—'}<span class="cond-temp-unit">°C</span></div>
+      <div class="cond-divider"></div>
+      <div class="cond-label" style="margin-bottom:9px">Wetsuit</div>
+      <div class="cond-wetsuit-pill">${getWetsuit(sstVal)}</div>
+      <div style="font-size:12px;color:var(--avmuted);margin-top:9px">${getWetsuitNote(sstVal)}</div>
+    </div>`;
+
+  // ── Tide card ──
+  const tide = buildTideSVG(tideMap, today);
+  const tideEl = document.getElementById('tide-card');
+  if (!tide) {
+    tideEl.innerHTML = `<div class="cond-label">Tide</div>
+      <div style="height:110px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--avmuted)">Tide data unavailable</div>`;
+    return;
+  }
+  const { pts, highE, lowE, nowE, nowX, nowY, trend, W, H } = tide;
+  const fmtH = h => { const ampm = h < 12 ? 'a' : 'p'; const h12 = h % 12 || 12; return `${h12}${ampm}`; };
+
+  tideEl.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+      <div class="cond-label">Tide</div>
+      <div style="font-size:11px;color:var(--avmuted)">indicative · MeteoFrance model</div>
+    </div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block">
+      <polyline points="${pts}" fill="none" stroke="var(--avacc2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${nowX.toFixed(1)}" cy="${nowY.toFixed(1)}" r="5" fill="none" stroke="var(--avtext)" stroke-width="2"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--avmuted);margin-top:4px">
+      <span>Now <strong style="color:var(--avtext)">${nowE.v.toFixed(1)}m ${trend}</strong></span>
+      <span>High ${highE.v.toFixed(1)}m · ${fmtH(highE.h)}</span>
+      <span>Low ${lowE.v.toFixed(1)}m · ${fmtH(lowE.h)}</span>
+    </div>`;
+}
+
 // ── Render ─────────────────────────────────────────────────────────────────
 
 function render(data, wx, tideMap, config) {
@@ -1760,6 +2024,9 @@ function render(data, wx, tideMap, config) {
 
   // Hero card
   renderHero(rows, wx, config);
+
+  // Conditions row (swell chart + compass + sea temp) + tide card
+  renderConditionsRow(rows, tideMap, config);
 
   // Max swell across all days for proportional bars
   const maxSwellAllDays = Math.max(
